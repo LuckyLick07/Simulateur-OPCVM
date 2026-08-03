@@ -168,11 +168,13 @@
   main.simulateur{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
   @media (max-width:920px){ main.simulateur{grid-template-columns:1fr} }
   .colonne-resultats{display:flex;flex-direction:column;gap:22px;min-width:0}
-  .tuiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  @media (max-width:1060px){ .tuiles{grid-template-columns:repeat(2,1fr)} }
-  .tuile{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:13px 15px 12px}
+  .tuiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:stretch}
+  @media (max-width:1060px){ .tuiles{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .tuile{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:13px 15px 12px;min-width:0}
   .tuile .lib{font-size:12px;color:var(--ink-2)}
-  .tuile .val{font-size:21px;font-weight:600;margin-top:3px;letter-spacing:.1px}
+  .tuile .val{font-size:18.5px;font-weight:600;margin-top:3px;letter-spacing:.1px;line-height:1.3}
+  .tuile .val.moyenne{font-size:16px}
+  .tuile .val.petite{font-size:14.5px}
   .tuile .sous{font-size:11.5px;color:var(--muted);margin-top:3px}
   .val.pos{color:var(--gain)} .val.neg{color:var(--perte)}
 
@@ -779,7 +781,9 @@ function majFiche(etat){
 function tuile(lib,val,sous,classe){
   const t=document.createElement("div");t.className="tuile";
   const l=document.createElement("div");l.className="lib";l.textContent=lib;
-  const v=document.createElement("div");v.className="val"+(classe?" "+classe:"");v.textContent=val;
+  const v=document.createElement("div");
+  const taille=val.length>=17?" petite":(val.length>=14?" moyenne":"");
+  v.className="val"+taille+(classe?" "+classe:"");v.textContent=String(val).replace(/\u00a0F\u00a0CFA$/," F\u00a0CFA");
   t.append(l,v);
   if(sous){const s=document.createElement("div");s.className="sous";s.textContent=sous;t.appendChild(s);}
   return t;
