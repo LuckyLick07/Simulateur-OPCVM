@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateur OPCVM — projetez votre épargne en FCP (UMOA)</title>
+<meta name="description" content="Simulateur d'épargne en fonds communs de placement de l'UMOA : projection fondée sur l'historique des valeurs liquidatives.">
+<style>
+  :root{
+    color-scheme: light;
+    /* — Charte « vert croissance & ambre » (validée CVD, modes clair+sombre) — */
+    --page:#F6F1E6;            /* plan de page, crème chaleureux */
+    --card:#FFFEFA;            /* surface des cartes et du graphique */
+    --ink:#1C2B22;             /* encre principale */
+    --ink-2:#4E5D52;           /* encre secondaire */
+    --muted:#75816F;           /* axes, mentions */
+    --grid:#EAE4D6;            /* filets hairline */
+    --baseline:#C9C2B0;        /* axe de base */
+    --hairline:rgba(28,43,34,.14);
+    --serie-capital:#0E9F6E;   /* série 1 : capital */
+    --serie-verse:#C98500;     /* série 2 : montant versé */
+    --bandeau:#0F4C33;         /* bandeau d'en-tête, vert profond */
+    --creme:#F6F1E6;
+    --gain:#0A6B3D;            /* texte de gain (jamais la couleur de série) */
+    --perte:#B23A2E;
+    --focus:#0E9F6E;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      color-scheme: dark;
+      --page:#0C110D;
+      --card:#131C16;
+      --ink:#E9F2EA;
+      --ink-2:#9FB3A4;
+      --muted:#7E8D81;
+      --grid:#243129;
+      --baseline:#3A4A40;
+      --hairline:rgba(233,242,234,.16);
+      --serie-capital:#0DA07A;
+      --serie-verse:#C98500;
+      --bandeau:#0F3B29;
+      --creme:#E9F2EA;
+      --gain:#3FBF8C;
+      --perte:#E07B6C;
+      --focus:#0DA07A;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--page); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    font-size:15px; line-height:1.5;
+  }
+  h1,h2,.serif{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600}
+
+  /* ————— Bandeau ————— */
+  header.bandeau{background:var(--bandeau); color:var(--creme); border-bottom:3px solid var(--serie-verse);}
+  .bandeau-int{max-width:1120px;margin:0 auto;padding:26px 20px 22px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;}
+  .bandeau h1{margin:0;font-size:30px;letter-spacing:.2px}
+  .bandeau .sous-titre{margin:0;font-size:14.5px;opacity:.92;flex:1 1 260px}
+  .etiquette{
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+    border:1px solid rgba(246,241,230,.45);padding:4px 9px;color:var(--creme);border-radius:2px;
+  }
+
+  /* ————— Gabarit ————— */
+  main{max-width:1120px;margin:0 auto;padding:26px 20px 8px;display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+  @media (max-width:920px){ main{grid-template-columns:1fr} }
+  .carte{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:20px 20px 18px}
+  .titre-section{
+    font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);
+    margin:0 0 14px;padding-bottom:9px;border-bottom:1px solid var(--grid);font-weight:600;
+  }
+
+  /* ————— Formulaire ————— */
+  form{display:flex;flex-direction:column;gap:15px}
+  label.champ{display:block;font-size:13px;color:var(--ink-2);font-weight:600}
+  .champ input,.champ select{
+    margin-top:5px;width:100%;font:inherit;color:var(--ink);background:var(--card);
+    border:1px solid var(--baseline);border-radius:2px;padding:8px 10px;
+  }
+  .champ input:focus,.champ select:focus,.freq label:focus-within{outline:2px solid var(--focus);outline-offset:1px}
+  .suffixe{position:relative;display:block;margin-top:5px}
+  .suffixe input{margin-top:0;padding-right:64px}
+  .suffixe .unite{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12.5px;color:var(--muted);pointer-events:none}
+  .freq{display:flex;border:1px solid var(--baseline);border-radius:2px;overflow:hidden;margin-top:5px}
+  .freq label{flex:1;text-align:center;font-size:13px;color:var(--ink-2);padding:7px 2px;cursor:pointer;border-left:1px solid var(--baseline)}
+  .freq label:first-child{border-left:none}
+  .freq input{position:absolute;opacity:0;pointer-events:none}
+  .freq label:has(input:checked){background:var(--bandeau);color:var(--creme);font-weight:600}
+  .ligne-duree{display:flex;align-items:center;gap:12px;margin-top:6px}
+  .ligne-duree input[type=range]{flex:1;accent-color:var(--serie-capital)}
+  .ligne-duree output{font-weight:600;min-width:58px;text-align:right;font-variant-numeric:tabular-nums}
+  fieldset.frais{border:1px solid var(--grid);border-radius:2px;padding:12px 14px 13px;margin:2px 0 0}
+  fieldset.frais legend{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding:0 6px;font-weight:600}
+  .frais .deux{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .note-frais{font-size:12px;color:var(--muted);margin:9px 0 0}
+
+  /* fiche du fonds */
+  .fiche-fonds{border-top:1px solid var(--grid);margin-top:4px;padding-top:11px;font-size:13px;color:var(--ink-2)}
+  .fiche-fonds .type{font-weight:600;color:var(--ink)}
+  .fiche-fonds .rdt{margin:8px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  .fiche-fonds .rdt-val{color:var(--ink);font-size:17px;font-weight:600;margin:1px 0 2px}
+  .fiche-fonds svg{display:block;margin-top:6px;color:var(--muted)}
+  .fiche-fonds .periode{font-size:12px;color:var(--muted)}
+
+  /* ————— Résultats ————— */
+  .colonne-resultats{display:flex;flex-direction:column;gap:22px;min-width:0}
+  .tuiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media (max-width:1060px){ .tuiles{grid-template-columns:repeat(2,1fr)} }
+  .tuile{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:13px 15px 12px}
+  .tuile .lib{font-size:12px;color:var(--ink-2)}
+  .tuile .val{font-size:21px;font-weight:600;margin-top:3px;letter-spacing:.1px}
+  .tuile .sous{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .val.pos{color:var(--gain)} .val.neg{color:var(--perte)}
+
+  .entete-graphe{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:4px}
+  .entete-graphe h2{font-size:18px;margin:0}
+  .entete-graphe .sous{font-size:12.5px;color:var(--muted)}
+  .legende{display:flex;gap:18px;margin:10px 0 2px;font-size:13px;color:var(--ink-2);flex-wrap:wrap}
+  .legende .cle{display:inline-flex;align-items:center;gap:7px}
+  .legende .trait{width:18px;height:0;border-top:2.5px solid;border-radius:1px}
+  .zone-graphe{position:relative}
+  .zone-graphe svg{display:block;width:100%;height:auto}
+  .zone-graphe svg:focus{outline:2px solid var(--focus);outline-offset:3px}
+  .vide{color:var(--muted);font-size:14px;text-align:center;padding:70px 10px}
+
+  /* infobulle */
+  .infobulle{
+    position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--hairline);
+    border-radius:3px;padding:9px 12px;font-size:12.5px;box-shadow:0 2px 10px rgba(20,30,24,.10);
+    min-width:190px;display:none;z-index:5;
+  }
+  .infobulle .quand{color:var(--muted);font-size:11.5px;margin-bottom:5px}
+  .infobulle .rangee{display:flex;align-items:center;gap:8px;margin-top:3px}
+  .infobulle .cle-trait{width:14px;height:0;border-top:2.5px solid;flex:none;border-radius:1px}
+  .infobulle .valeur{font-weight:600;font-variant-numeric:tabular-nums}
+  .infobulle .qui{color:var(--ink-2)}
+
+  /* ————— Tableau ————— */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  caption{text-align:left;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);font-weight:600;padding-bottom:9px;border-bottom:1px solid var(--grid);margin-bottom:2px;caption-side:top}
+  th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums;white-space:nowrap}
+  th{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  th:first-child,td:first-child{text-align:left}
+  tbody tr:last-child td{border-bottom:1px solid var(--baseline);font-weight:600}
+  td.gain{color:var(--gain)} td.perte{color:var(--perte)}
+
+  /* ————— Mentions ————— */
+  .mentions{max-width:1120px;margin:8px auto 0;padding:18px 20px 30px}
+  .mentions h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);border-top:1px solid var(--baseline);padding-top:14px;margin:0 0 8px;font-family:inherit;font-weight:600}
+  .mentions p{font-size:12.5px;color:var(--ink-2);margin:6px 0;max-width:76ch}
+  footer{border-top:1px solid var(--hairline);color:var(--muted);font-size:12.5px}
+  footer .int{max-width:1120px;margin:0 auto;padding:14px 20px 20px;display:flex;flex-wrap:wrap;gap:6px 22px;justify-content:space-between}
+  footer a{color:var(--ink-2)}
+  @media print{ header.bandeau{-webkit-print-color-adjust:exact;print-color-adjust:exact} .infobulle{display:none!important} }
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="bandeau-int">
+    <h1>Simulateur OPCVM</h1>
+    <p class="sous-titre">Projetez votre épargne en fonds communs de placement de l’UMOA</p>
+    <span class="etiquette" id="etiquette-vl">Version 1</span>
+  </div>
+</header>
+
+<main>
+  <!-- ——————— Panneau de saisie ——————— -->
+  <section class="carte" aria-labelledby="titre-plan">
+    <h2 class="titre-section" id="titre-plan">Votre plan d’épargne</h2>
+    <form id="formulaire" autocomplete="off">
+      <label class="champ">Fonds
+        <select id="fonds"></select>
+      </label>
+
+      <div class="fiche-fonds" id="fiche-fonds"></div>
+
+      <label class="champ">Mise de départ
+        <span class="suffixe"><input type="text" inputmode="numeric" id="initial" value="100 000" autocomplete="off"><span class="unite">F CFA</span></span>
+      </label>
+
+      <label class="champ">Versement régulier
+        <span class="suffixe"><input type="text" inputmode="numeric" id="versement" value="25 000" autocomplete="off"><span class="unite">F CFA</span></span>
+      </label>
+
+      <div>
+        <span class="champ" style="display:block">Fréquence des versements</span>
+        <div class="freq" role="radiogroup" aria-label="Fréquence des versements">
+          <label><input type="radio" name="freq" value="1" checked>Mensuelle</label>
+          <label><input type="radio" name="freq" value="3">Trimestrielle</label>
+          <label><input type="radio" name="freq" value="12">Annuelle</label>
+        </div>
+      </div>
+
+      <div>
+        <label class="champ" for="duree">Durée de placement</label>
+        <div class="ligne-duree">
+          <input type="range" id="duree" min="1" max="30" value="10">
+          <output for="duree" id="duree-affichee">10 ans</output>
+        </div>
+      </div>
+
+      <fieldset class="frais">
+        <legend>Frais</legend>
+        <div class="deux">
+          <label class="champ">Droits d’entrée
+            <span class="suffixe"><input type="number" id="entree" min="0" max="10" step="0.1" value="2"><span class="unite">%</span></span>
+          </label>
+          <label class="champ">Droits de sortie
+            <span class="suffixe"><input type="number" id="sortie" min="0" max="10" step="0.1" value="0"><span class="unite">%</span></span>
+          </label>
+        </div>
+        <p class="note-frais">Les frais de gestion sont déjà reflétés dans les valeurs liquidatives, donc dans le rendement appliqué.</p>
+      </fieldset>
+    </form>
+  </section>
+
+  <!-- ——————— Résultats ——————— -->
+  <div class="colonne-resultats">
+    <div class="tuiles" id="tuiles" aria-live="polite"></div>
+
+    <section class="carte" aria-labelledby="titre-graphe">
+      <div class="entete-graphe">
+        <h2 id="titre-graphe">Évolution de votre épargne</h2>
+        <span class="sous" id="sous-graphe"></span>
+      </div>
+      <div class="legende" aria-hidden="false">
+        <span class="cle"><span class="trait" style="border-color:var(--serie-capital)"></span>Capital</span>
+        <span class="cle"><span class="trait" style="border-color:var(--serie-verse)"></span>Total versé</span>
+      </div>
+      <div class="zone-graphe" id="zone-graphe">
+        <svg id="graphe" role="img" tabindex="0"
+             aria-label="Graphique : évolution du capital et du total versé au fil des années. Les valeurs détaillées figurent dans le tableau ci-dessous."></svg>
+        <div class="infobulle" id="infobulle"></div>
+      </div>
+    </section>
+
+    <section class="carte" style="overflow-x:auto">
+      <table id="tableau">
+        <caption>Détail année par année</caption>
+        <thead>
+          <tr><th scope="col">Année</th><th scope="col">Total versé</th><th scope="col">Capital</th><th scope="col">Gain latent</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
+</main>
+
+<section class="mentions">
+  <h2>Hypothèses et avertissements</h2>
+  <p>Cet outil est fourni à titre pédagogique. Il ne constitue ni un conseil en investissement, ni une offre de souscription, ni une promesse de rendement.</p>
+  <p>Le rendement appliqué est le rendement annualisé constaté sur l’historique des valeurs liquidatives du fonds sélectionné, projeté à taux constant. Les performances passées ne préjugent pas des performances futures.</p>
+  <p>Hypothèses de calcul : versements en début de période ; droits d’entrée déduits de chaque versement ; droits de sortie appliqués à la valeur finale ; frais de gestion déjà compris dans les valeurs liquidatives ; fiscalité non prise en compte.</p>
+  <p id="mention-source">Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds.</p>
+</section>
+
+<footer>
+  <div class="int">
+    <span>Simulateur OPCVM — version 1, août 2026</span>
+    <span>Textes de référence du marché financier : <a href="https://luckylick07.github.io/textes-mfr-umoa/">textes-mfr-umoa</a></span>
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* ————————————————————————— Données de démonstration —————————————————————————
+   VL mensuelles fictives (fin de mois), générées pour la maquette.
+   Dans la version définitive, ces données proviendront d'un fichier JSON par fonds. */
+const FONDS = [{"id": "Historique VL FCP AGA CONFORT PLUS", "nom": "FCP AGA Confort Plus", "entree": 0.0, "sortie": 0.0, "labels": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04"], "vl": [1499.64, 1500.04, 1500.65, 1500.84, 1500.92, 1501.08, 1501.77, 1502.31, 1502.53, 1494.95, 1497.2, 1501.39, 1501.98, 1502.16, 1501.53, 1489.47, 1484.53, 1485.27, 1483.87, 1482.5, 1484.44, 1501.43, 1498.41, 1505.15, 1503.57]}, {"id": "Historique VL FCP AGA CAPITAL PLUS", "nom": "FCP AGA Capital Plus", "entree": 0.0, "sortie": 0.0, "labels": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04"], "vl": [1602.82, 1603.95, 1604.84, 1604.9, 1605.67, 1605.45, 1605.65, 1606.68, 1606.78, 1606.56, 1607.63, 1608.91, 1608.93, 1609.18, 1606.12, 1606.31, 1608.1, 1610.45, 1611.58, 1615.02, 1614.96, 1615.69, 1615.38, 1581.35, 1581.31]}];
+
+/* ————————————————————————— Moteur ————————————————————————— */
+function dateISO(label){ const [y,m,j]=label.split("-").map(Number); return new Date(Date.UTC(y,m-1,j)); }
+
+function rendementAnnualise(fonds){
+  const d0=dateISO(fonds.labels[0]), d1=dateISO(fonds.labels[fonds.labels.length-1]);
+  const annees=(d1-d0)/86400000/365.25;
+  const r=Math.pow(fonds.vl[fonds.vl.length-1]/fonds.vl[0], 1/annees)-1;
+  return {r, annees, du:fonds.labels[0], au:fonds.labels[fonds.labels.length-1]};
+}
+
+function simuler(r, initial, versement, freq, annees, entreePct, sortiePct){
+  const M=annees*12, im=Math.pow(1+r,1/12)-1, e=entreePct/100;
+  const cap=[initial*(1-e)], dep=[initial];
+  for(let t=1;t<=M;t++){
+    const d=(versement>0 && (t-1)%freq===0)?versement:0;
+    cap.push((cap[cap.length-1]+d*(1-e))*(1+im));
+    dep.push(dep[dep.length-1]+d);
+  }
+  const brut=cap[M], net=brut*(1-sortiePct/100);
+  return {cap, dep, totalVerse:dep[M], brut, net, fraisEntree:dep[M]*e};
+}
+
+/* ————————————————————————— Formats (fr-FR) ————————————————————————— */
+const fmtEntier=new Intl.NumberFormat("fr-FR",{maximumFractionDigits:0});
+const fmtDec=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:1,maximumFractionDigits:1});
+const fmtPct=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const F=v=>fmtEntier.format(Math.round(v))+" F CFA";
+const Fcourt=v=>{
+  const a=Math.abs(v);
+  if(a>=1e9) return fmtDec.format(v/1e9)+" Md";
+  if(a>=1e6) return fmtDec.format(v/1e6)+" M";
+  if(a>=1e3) return fmtEntier.format(v/1e3)+" k";
+  return fmtEntier.format(v);
+};
+const MOIS_FR=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const libDate=l=>{const [y,m,j]=l.split("-").map(Number);return (j?j+"\u00a0":"")+MOIS_FR[m-1]+" "+y;};
+function libDuree(annees){
+  const jours=annees*365.25;
+  if(jours<70) return Math.round(jours/7)+" semaines";
+  if(jours<700) return Math.round(jours/30.44)+" mois";
+  return (Math.round(annees*10)/10).toLocaleString("fr-FR")+" ans";
+}
+
+/* ————————————————————————— État & lecture du formulaire ————————————————————————— */
+const $=id=>document.getElementById(id);
+const selFonds=$("fonds");
+FONDS.forEach((f,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=f.nom; selFonds.appendChild(o); });
+
+function borner(v,min,max){ v=Number.isFinite(v)?v:0; return Math.min(max,Math.max(min,v)); }
+function parseMontant(v){ const d=String(v).replace(/[^0-9]/g,""); return d?Number(d):0; }
+function lireEtat(){
+  const f=FONDS[Number(selFonds.value)||0];
+  const {r,annees,du,au}=rendementAnnualise(f);
+  return {
+    fonds:f, r, du, au, annees_obs:annees,
+    initial:borner(parseMontant($("initial").value),0,1e12),
+    versement:borner(parseMontant($("versement").value),0,1e10),
+    freq:Number(document.querySelector("input[name=freq]:checked").value),
+    annees:borner(parseInt($("duree").value,10),1,30),
+    entree:borner(parseFloat($("entree").value),0,10),
+    sortie:borner(parseFloat($("sortie").value),0,10)
+  };
+}
+
+/* ————————————————————————— Fiche du fonds ————————————————————————— */
+function ligneSVG(valeurs,w,h){
+  const min=Math.min(...valeurs),max=Math.max(...valeurs);
+  const x=i=>1.5+(w-3)*i/(valeurs.length-1);
+  const y=v=>h-2-(h-4)*((v-min)/((max-min)||1));
+  return valeurs.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ");
+}
+function majFiche(etat){
+  const f=etat.fonds, el=$("fiche-fonds");
+  el.replaceChildren();
+  const rdt=document.createElement("div"); rdt.className="rdt";
+  rdt.textContent="Rendement annualisé observé";
+  const rdtVal=document.createElement("div"); rdtVal.className="rdt-val";
+  rdtVal.textContent=fmtPct.format(etat.r*100)+"\u00a0% par an";
+  const per=document.createElement("div"); per.className="periode";
+  per.textContent="VL "+fmtEntier.format(f.vl[0])+" → "+fmtEntier.format(f.vl[f.vl.length-1])+" · "+libDate(f.labels[0])+" – "+libDate(f.labels[f.labels.length-1])+" ("+f.vl.length+" VL)";
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("width","150");svg.setAttribute("height","34");svg.setAttribute("aria-hidden","true");
+  const p=document.createElementNS("http://www.w3.org/2000/svg","path");
+  p.setAttribute("d",ligneSVG(f.vl,150,34));p.setAttribute("fill","none");
+  p.setAttribute("stroke","currentColor");p.setAttribute("stroke-width","1.5");
+  svg.appendChild(p);
+  el.append(rdt,rdtVal,per,svg);
+  if(etat.annees_obs<1){
+    const nb=document.createElement("div"); nb.className="periode";
+    nb.textContent="Historique court ("+libDuree(etat.annees_obs)+") : rendement annualisé à considérer avec prudence.";
+    el.appendChild(nb);
+  }
+}
+
+/* ————————————————————————— Tuiles ————————————————————————— */
+function tuile(lib,val,sous,classe){
+  const t=document.createElement("div");t.className="tuile";
+  const l=document.createElement("div");l.className="lib";l.textContent=lib;
+  const v=document.createElement("div");v.className="val"+(classe?" "+classe:"");v.textContent=val;
+  t.append(l,v);
+  if(sous){const s=document.createElement("div");s.className="sous";s.textContent=sous;t.appendChild(s);}
+  return t;
+}
+function majTuiles(etat,res){
+  const c=$("tuiles"); c.replaceChildren();
+  if(res.totalVerse<=0){ return; }
+  const gain=res.net-res.totalVerse, pct=gain/res.totalVerse;
+  c.append(
+    tuile("Total versé",F(res.totalVerse), res.fraisEntree>0?("dont droits d’entrée : "+F(res.fraisEntree)):"sur "+etat.annees+" ans"),
+    tuile("Valeur au terme",F(res.net), etat.sortie>0?"nette de droits de sortie":"au bout de "+etat.annees+" ans"),
+    tuile("Gain net",(gain>=0?"+":"−")+F(Math.abs(gain)), "soit "+fmtPct.format(Math.abs(pct)*100)+" % du total versé", gain>=0?"pos":"neg"),
+    tuile("Rendement appliqué",fmtPct.format(etat.r*100)+" %", "VL du "+libDate(etat.du)+" au "+libDate(etat.au))
+  );
+}
+
+/* ————————————————————————— Graphique ————————————————————————— */
+const SVG_NS="http://www.w3.org/2000/svg";
+function el(name,attrs,parent){
+  const n=document.createElementNS(SVG_NS,name);
+  for(const k in attrs) n.setAttribute(k,attrs[k]);
+  if(parent) parent.appendChild(n);
+  return n;
+}
+function pasArrondi(brut){
+  const p=Math.pow(10,Math.floor(Math.log10(brut)));
+  for(const m of [1,2,2.5,5,10]) if(brut<=m*p) return m*p;
+  return 10*p;
+}
+const graphe={ etat:null, res:null, idx:-1, largeur:0 };
+
+function couleurs(){
+  const cs=getComputedStyle(document.documentElement);
+  return {
+    capital:cs.getPropertyValue("--serie-capital").trim(),
+    verse:cs.getPropertyValue("--serie-verse").trim(),
+    grid:cs.getPropertyValue("--grid").trim(),
+    baseline:cs.getPropertyValue("--baseline").trim(),
+    muted:cs.getPropertyValue("--muted").trim(),
+    ink:cs.getPropertyValue("--ink").trim(),
+    ink2:cs.getPropertyValue("--ink-2").trim(),
+    card:cs.getPropertyValue("--card").trim()
+  };
+}
+
+function dessinerGraphe(){
+  const svg=$("graphe"), zone=$("zone-graphe");
+  const etat=graphe.etat, res=graphe.res;
+  svg.replaceChildren();
+  const W=graphe.largeur=Math.max(300,zone.clientWidth);
+  const etroit=W<620;
+  const H=336, mg={haut:34, droite:etroit?18:118, bas:36, gauche:56};
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);
+  svg.setAttribute("width",W);svg.setAttribute("height",H);
+
+  if(!res || res.totalVerse<=0){
+    const t=el("text",{x:W/2,y:H/2,"text-anchor":"middle",fill:couleurs().muted,"font-size":"14"},svg);
+    t.textContent="Saisissez une mise de départ ou un versement pour lancer la simulation.";
+    return;
+  }
+  const C=couleurs();
+  const M=etat.annees*12;
+  const maxY=Math.max(res.cap[M],res.dep[M],...res.cap)*1.04;
+  const pas=pasArrondi(maxY/4);
+  const yMax=Math.ceil(maxY/pas)*pas;
+  const X=t=>mg.gauche+(W-mg.gauche-mg.droite)*t/M;
+  const Y=v=>H-mg.bas-(H-mg.haut-mg.bas)*v/yMax;
+
+  /* grille horizontale + graduations Y */
+  for(let v=0;v<=yMax+1;v+=pas){
+    el("line",{x1:mg.gauche,x2:W-mg.droite,y1:Y(v),y2:Y(v),stroke:v===0?C.baseline:C.grid,"stroke-width":1},svg);
+    const t=el("text",{x:mg.gauche-8,y:Y(v)+4,"text-anchor":"end",fill:C.muted,"font-size":"11","font-variant-numeric":"tabular-nums"},svg);
+    t.textContent=Fcourt(v);
+  }
+  const unite=el("text",{x:mg.gauche-8,y:15,"text-anchor":"end",fill:C.muted,"font-size":"10.5"},svg);
+  unite.textContent="F CFA";
+
+  /* graduations X (années) */
+  const pasAn=etat.annees<=8?1:(etat.annees<=16?2:5);
+  for(let a=0;a<=etat.annees;a+=pasAn){
+    const x=X(a*12);
+    el("line",{x1:x,x2:x,y1:H-mg.bas,y2:H-mg.bas+4,stroke:C.baseline,"stroke-width":1},svg);
+    const t=el("text",{x:x,y:H-mg.bas+17,"text-anchor":"middle",fill:C.muted,"font-size":"11"},svg);
+    t.textContent=a===0?"Départ":String(a);
+  }
+  const axeX=el("text",{x:W-mg.droite,y:H-mg.bas+31,"text-anchor":"end",fill:C.muted,"font-size":"10.5"},svg);
+  axeX.textContent="Années";
+
+  /* séries */
+  const chemin=serie=>serie.map((v,t)=>(t?"L":"M")+X(t).toFixed(2)+" "+Y(v).toFixed(2)).join(" ");
+  el("path",{d:chemin(res.cap)+" L"+X(M).toFixed(2)+" "+Y(0)+" L"+X(0)+" "+Y(0)+" Z",fill:C.capital,opacity:"0.10",stroke:"none"},svg);
+  el("path",{d:chemin(res.dep),fill:"none",stroke:C.verse,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
+  el("path",{d:chemin(res.cap),fill:"none",stroke:C.capital,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
+
+  /* points terminaux : anneau de surface + pastille */
+  for(const [serie,coul] of [[res.dep,C.verse],[res.cap,C.capital]]){
+    el("circle",{cx:X(M),cy:Y(serie[M]),r:6.5,fill:C.card},svg);
+    el("circle",{cx:X(M),cy:Y(serie[M]),r:4.5,fill:coul},svg);
+  }
+
+  /* étiquettes de fin (sélectives) — écartées si trop proches */
+  if(!etroit){
+    let yCap=Y(res.cap[M]), yDep=Y(res.dep[M]);
+    const capDessus=res.cap[M]>=res.dep[M];
+    if(Math.abs(yCap-yDep)<34){ if(capDessus){yCap-=(34-Math.abs(yCap-yDep))/2;yDep+=(34-Math.abs(Y(res.cap[M])-Y(res.dep[M])))/2;} else {yCap+=17;yDep-=17;} }
+    const etiq=(y,valeur,nom)=>{
+      const g=el("g",{},svg);
+      const v=el("text",{x:X(M)+12,y:y-2,fill:C.ink,"font-size":"12.5","font-weight":"600"},g);
+      v.textContent=Fcourt(valeur);
+      const n=el("text",{x:X(M)+12,y:y+12,fill:C.ink2,"font-size":"10.5"},g);
+      n.textContent=nom;
+    };
+    etiq(yCap,res.cap[M],"Capital");
+    etiq(yDep,res.dep[M],"Total versé");
+  }
+
+  /* couche de survol : ligne-repère + points + zone de capture */
+  const gSurvol=el("g",{style:"display:none"},svg);
+  el("line",{x1:0,x2:0,y1:mg.haut,y2:H-mg.bas,stroke:C.baseline,"stroke-width":1,id:"repere-x"},gSurvol);
+  el("circle",{r:5.5,fill:C.card,id:"pt-dep-ring"},gSurvol);
+  el("circle",{r:3.8,fill:C.verse,id:"pt-dep"},gSurvol);
+  el("circle",{r:5.5,fill:C.card,id:"pt-cap-ring"},gSurvol);
+  el("circle",{r:3.8,fill:C.capital,id:"pt-cap"},gSurvol);
+  const capture=el("rect",{x:mg.gauche,y:mg.haut,width:W-mg.gauche-mg.droite,height:H-mg.haut-mg.bas,fill:"transparent"},svg);
+
+  const survol=t=>{
+    t=Math.min(M,Math.max(0,t));
+    graphe.idx=t;
+    gSurvol.style.display="";
+    const x=X(t);
+    const l=gSurvol.querySelector("#repere-x"); l.setAttribute("x1",x);l.setAttribute("x2",x);
+    for(const [id,serie] of [["dep",res.dep],["cap",res.cap]]){
+      gSurvol.querySelector("#pt-"+id+"-ring").setAttribute("cx",x);
+      gSurvol.querySelector("#pt-"+id+"-ring").setAttribute("cy",Y(serie[t]));
+      gSurvol.querySelector("#pt-"+id).setAttribute("cx",x);
+      gSurvol.querySelector("#pt-"+id).setAttribute("cy",Y(serie[t]));
+    }
+    montrerInfobulle(t,x,Y(Math.max(res.cap[t],res.dep[t])));
+  };
+  const cacher=()=>{ gSurvol.style.display="none"; $("infobulle").style.display="none"; graphe.idx=-1; };
+
+  capture.addEventListener("pointermove",ev=>{
+    const r=svg.getBoundingClientRect();
+    const px=(ev.clientX-r.left)*(W/r.width);
+    survol(Math.round((px-mg.gauche)/((W-mg.gauche-mg.droite)/M)));
+  });
+  capture.addEventListener("pointerleave",cacher);
+  svg.addEventListener("keydown",ev=>{
+    if(ev.key==="ArrowRight"||ev.key==="ArrowLeft"){
+      ev.preventDefault();
+      const t=graphe.idx<0?M:graphe.idx+(ev.key==="ArrowRight"?1:-1);
+      survol(t);
+    } else if(ev.key==="Escape"){ cacher(); }
+  });
+  svg.addEventListener("blur",cacher);
+}
+
+function montrerInfobulle(t,xSvg,ySvg){
+  const bulle=$("infobulle"), zone=$("zone-graphe"), svg=$("graphe");
+  const etat=graphe.etat,res=graphe.res;
+  bulle.replaceChildren();
+  const quand=document.createElement("div");quand.className="quand";
+  const ans=Math.floor(t/12),mois=t%12;
+  quand.textContent=t===0?"Au départ":("Après "+(ans>0?ans+" an"+(ans>1?"s":""):"")+(ans>0&&mois>0?" et ":"")+(mois>0?mois+" mois":""));
+  bulle.appendChild(quand);
+  const C=couleurs();
+  for(const [serie,coul,nom] of [[res.cap,C.capital,"Capital"],[res.dep,C.verse,"Total versé"]]){
+    const r=document.createElement("div");r.className="rangee";
+    const k=document.createElement("span");k.className="cle-trait";k.style.borderColor=coul;
+    const v=document.createElement("span");v.className="valeur";v.textContent=F(serie[t]);
+    const q=document.createElement("span");q.className="qui";q.textContent=nom;
+    r.append(k,v,q);bulle.appendChild(r);
+  }
+  const rect=svg.getBoundingClientRect(), zr=zone.getBoundingClientRect();
+  const echelle=rect.width/graphe.largeur;
+  let gauche=(rect.left-zr.left)+xSvg*echelle+14;
+  bulle.style.display="block";
+  const bw=bulle.offsetWidth;
+  if(gauche+bw>zr.width-6) gauche=(rect.left-zr.left)+xSvg*echelle-bw-14;
+  bulle.style.left=Math.max(4,gauche)+"px";
+  bulle.style.top=Math.max(0,(rect.top-zr.top)+ySvg*echelle-14)+"px";
+}
+
+/* ————————————————————————— Tableau ————————————————————————— */
+function majTableau(etat,res){
+  const corps=$("tableau").querySelector("tbody");
+  corps.replaceChildren();
+  if(res.totalVerse<=0) return;
+  for(let a=1;a<=etat.annees;a++){
+    const t=a*12, tr=document.createElement("tr");
+    const gain=res.cap[t]-res.dep[t];
+    const c1=document.createElement("td");c1.textContent=String(a);
+    const c2=document.createElement("td");c2.textContent=F(res.dep[t]);
+    const c3=document.createElement("td");c3.textContent=F(res.cap[t]);
+    const c4=document.createElement("td");c4.className=gain>=0?"gain":"perte";
+    c4.textContent=(gain>=0?"+":"−")+F(Math.abs(gain));
+    tr.append(c1,c2,c3,c4);corps.appendChild(tr);
+  }
+}
+
+/* ————————————————————————— Orchestration ————————————————————————— */
+function recalculer(){
+  const etat=lireEtat();
+  $("duree-affichee").value=etat.annees+" an"+(etat.annees>1?"s":"");
+  const res=simuler(etat.r,etat.initial,etat.versement,etat.freq,etat.annees,etat.entree,etat.sortie);
+  graphe.etat=etat;graphe.res=res;
+  majFiche(etat);
+  majTuiles(etat,res);
+  const freqTxt={1:"versements mensuels",3:"versements trimestriels",12:"versements annuels"}[etat.freq];
+  $("sous-graphe").textContent="Montants en francs CFA · "+freqTxt+" · rendement "+fmtPct.format(etat.r*100)+" % par an issu des VL";
+  dessinerGraphe();
+  majTableau(etat,res);
+}
+
+/* séparateurs de milliers appliqués pendant la frappe, curseur préservé */
+function grouperMilliers(input){
+  input.addEventListener("input",()=>{
+    const avant=input.value, pos=input.selectionStart==null?avant.length:input.selectionStart;
+    const chiffresAvantCurseur=(avant.slice(0,pos).match(/[0-9]/g)||[]).length;
+    let d=avant.replace(/[^0-9]/g,"").replace(/^0+(?=[0-9])/,"");
+    const fmt=d?d.replace(/\B(?=([0-9]{3})+(?![0-9]))/g,"\u202f"):"";
+    if(input.value!==fmt) input.value=fmt;
+    let vus=0,i=0;
+    while(i<fmt.length&&vus<chiffresAvantCurseur){ if(/[0-9]/.test(fmt[i])) vus++; i++; }
+    try{ input.setSelectionRange(i,i); }catch(e){}
+  });
+  input.dispatchEvent(new Event("input",{bubbles:false}));
+}
+grouperMilliers($("initial"));
+grouperMilliers($("versement"));
+
+/* droits d'entrée/sortie prérenseignés depuis le fonds affiché */
+$("entree").value=FONDS[0].entree;
+$("sortie").value=FONDS[0].sortie;
+
+/* étiquette et mention : date de la dernière VL intégrée */
+(function(){
+  const toutes=FONDS.flatMap(f=>f.labels);
+  toutes.sort();
+  const derniere=toutes[toutes.length-1];
+  $("etiquette-vl").textContent="Version 1 · VL au "+libDate(derniere);
+  $("mention-source").textContent="Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds ; dernière VL intégrée : "+libDate(derniere)+".";
+})();
+
+selFonds.addEventListener("change",()=>{
+  const f=FONDS[Number(selFonds.value)||0];
+  $("entree").value=f.entree; $("sortie").value=f.sortie;
+  recalculer();
+});
+$("formulaire").addEventListener("input",recalculer);
+$("formulaire").addEventListener("submit",ev=>ev.preventDefault());
+new ResizeObserver(()=>{ if(graphe.res) dessinerGraphe(); }).observe($("zone-graphe"));
+if(window.matchMedia){ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>recalculer()); }
+recalculer();
+
+/* Exposé pour vérification automatisée (sans effet pour l'utilisateur) */
+window.__moteur={rendementAnnualise,simuler,FONDS};
+</script>
+</body>
+</html>
