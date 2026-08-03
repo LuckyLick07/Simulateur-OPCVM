@@ -34,7 +34,11 @@ REGLAGES = {
 # ————— Envoi du résumé par e-mail (EmailJS) —————
 # Laisser vide tant que le compte n'est pas configuré : le bouton bascule
 # alors sur un brouillon dans la messagerie du visiteur.
-EMAILJS = {"service": "", "template": "", "publicKey": ""}
+EMAILJS = {
+    "service": "service_m8vjrxe",
+    "template": "template_4sxn887",
+    "publicKey": "DEtodI8QynsdM3YHw",
+}
 
 
 def lire_texte(chemin: Path) -> str:
