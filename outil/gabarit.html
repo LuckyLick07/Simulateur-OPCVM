@@ -1266,7 +1266,7 @@ function construirePaires(etat){
   paires.push(["Capital placé",F(etat.capital)]);
   paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:etat.modeRente==="duree"?["Durée souhaitée",etat.dureeRente+" ans"]:["Rente","à vie — capital préservé"]);
   } else {
-  paires.push(["Âges",etat.ageA+" ans -> retraite à "+etat.ageR+" ans"],["Mise de départ",F(etat.initial)],["Versement mensuel",F(etat.mensuel)]);
+  paires.push(["Âges",etat.ageA+" ans → retraite à "+etat.ageR+" ans"],["Mise de départ",F(etat.initial)],["Versement mensuel",F(etat.mensuel)]);
   paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:etat.modeRente==="duree"?["Durée de rente",etat.dureeRente+" ans"]:["Rente","à vie — capital préservé"]);
   }
   paires.push(["Rendement appliqué",fmtPct.format(etat.r*100)+" % par an (VL du "+libDate(etat.du)+" au "+libDate(etat.au)+")"]);
@@ -1388,6 +1388,30 @@ $("btn-pdf").addEventListener("click",genererRapport);
 /* ————————————————— Envoi par e-mail ————————————————— */
 const EMAILJS_CONF=__EMAILJSCONF__;
 const NOMS_SCENARIO={epargne:"Épargne par capitalisation",rente:"Rente tirée du capital",plan:"Plan retraite : épargne puis rente"};
+function echapHtml(s){ return String(s).replace(/[\u202f\u00a0]/g," ").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function construireParametresHtml(etat){
+  return construirePaires(etat).map(p=>
+    '<tr><td style="padding:6px 0;color:#75816F;font-size:13px;font-family:Arial,Helvetica,sans-serif;">'+echapHtml(p[0])+
+    '</td><td style="padding:6px 0 6px 14px;color:#1C2B22;font-weight:bold;font-size:13px;text-align:right;font-family:Arial,Helvetica,sans-serif;">'+echapHtml(p[1])+"</td></tr>").join("");
+}
+function construireChiffresHtml(){
+  const t=[...document.querySelectorAll("#tuiles .tuile")].map(x=>({
+    lib:x.querySelector(".lib").textContent, val:x.querySelector(".val").textContent,
+    sous:x.querySelector(".sous")?x.querySelector(".sous").textContent:""}));
+  let html='<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:6px;">';
+  for(let i=0;i<t.length;i+=2){
+    html+="<tr>";
+    for(let j=i;j<Math.min(i+2,t.length);j++){
+      const c=t[j];
+      html+='<td width="50%" style="border:1px solid #E4DFD3;padding:10px 12px;vertical-align:top;font-family:Arial,Helvetica,sans-serif;background:#FFFEFA;">'+
+        '<div style="font-size:11px;color:#75816F;">'+echapHtml(c.lib)+"</div>"+
+        '<div style="font-size:16px;font-weight:bold;color:#1C2B22;padding-top:2px;">'+echapHtml(c.val)+"</div>"+
+        (c.sous?('<div style="font-size:11px;color:#75816F;padding-top:2px;">'+echapHtml(c.sous)+"</div>"):"")+"</td>";
+    }
+    html+="</tr>";
+  }
+  return html+"</table>";
+}
 function emailConfigure(){ return !!(EMAILJS_CONF.service&&EMAILJS_CONF.template&&EMAILJS_CONF.publicKey&&window.emailjs); }
 function construireResume(etat){
   const lignes=["SIMULATEUR OPCVM — RÉSUMÉ DE SIMULATION"];
@@ -1420,9 +1444,14 @@ $("btn-envoyer-email").addEventListener("click",()=>{
   if(emailConfigure()){
     statut.textContent="Envoi en cours…";
     try{ window.emailjs.init({publicKey:EMAILJS_CONF.publicKey}); }catch(e){}
+    const auj=new Date();
     window.emailjs.send(EMAILJS_CONF.service,EMAILJS_CONF.template,{
       to_email:adr, fonds:etat.fonds.nom, scenario:NOMS_SCENARIO[etat.scenario],
-      resume:resume, lien:"https://luckylick07.github.io/Simulateur-OPCVM/"
+      date:auj.getDate()+" "+MOIS_FR[auj.getMonth()]+" "+auj.getFullYear(),
+      resume:resume,
+      parametres_html:construireParametresHtml(etat),
+      chiffres_html:construireChiffresHtml(),
+      lien:"https://luckylick07.github.io/Simulateur-OPCVM/"
     }).then(()=>{ statut.textContent="Envoyé. Vérifiez votre boîte de réception (et les indésirables)."; })
       .catch(err=>{ statut.textContent="L’envoi a échoué ("+((err&&err.text)||"erreur réseau")+"). Réessayez plus tard."; });
   } else {
@@ -1444,7 +1473,7 @@ basculerScenario();
 vueDepuisHash();
 
 /* Exposé pour vérification automatisée */
-window.__moteur={rendementAnnualise,simulerEpargne,simulerRente,simulerPlan,FONDS,construireProposition,emailConfigure,construireResume:()=>construireResume(graphe.etat)};
+window.__moteur={rendementAnnualise,simulerEpargne,simulerRente,simulerPlan,FONDS,construireProposition,emailConfigure,construireResume:()=>construireResume(graphe.etat),construireParametresHtml:()=>construireParametresHtml(graphe.etat),construireChiffresHtml};
 </script>
 </body>
 </html>
