@@ -35,7 +35,7 @@ REGLAGES = {
 # Laisser vide tant que le compte n'est pas configuré : le bouton bascule
 # alors sur un brouillon dans la messagerie du visiteur.
 EMAILJS = {
-    "service": "service_m8vjrxe",
+    "service": "service_bk2nicj",
     "template": "template_4sxn887",
     "publicKey": "DEtodI8QynsdM3YHw",
 }
