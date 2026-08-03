@@ -27,8 +27,8 @@ SORTIE = RACINE / "index.html"
 # Clé : fragment (insensible à la casse) du nom de fichier.
 # ordre : position dans la liste déroulante ; entree/sortie : droits en %.
 REGLAGES = {
-    "confort": {"ordre": 1, "entree": 0.0, "sortie": 0.0},
-    "capital": {"ordre": 2, "entree": 0.0, "sortie": 0.0},
+    "confort": {"ordre": 1, "entree": 0.75, "sortie": 0.0},
+    "capital": {"ordre": 2, "entree": 1.5, "sortie": 1.5},
 }
 
 
@@ -105,7 +105,7 @@ def lire_xlsx(chemin: Path):
 
 def nom_du_fonds(chemin: Path) -> str:
     nom = chemin.stem
-    nom = re.sub(r"^\s*historique\s+VL\s+", "", nom, flags=re.IGNORECASE)
+    nom = re.sub(r"^\s*historique\s+(VL\s+)?", "", nom, flags=re.IGNORECASE)
     mots = []
     for mot in nom.split():
         mots.append(mot if len(mot) <= 3 else mot.capitalize())
