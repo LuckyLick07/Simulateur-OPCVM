@@ -198,6 +198,10 @@
   .infobulle .qui{color:var(--ink-2)}
 
   .barre-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+  .panneau-email{padding:14px 16px 12px}
+  .ligne-email{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+  .ligne-email input{flex:1;min-width:220px;font:inherit;padding:8px 10px;border:1px solid var(--baseline);border-radius:2px;background:var(--card);color:var(--ink)}
+  .ligne-email input:focus{outline:2px solid var(--focus);outline-offset:1px}
 
   /* ————— Tableau ————— */
   table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -318,6 +322,7 @@
             <div class="choix-liste">
               <label><input type="radio" name="g-mode-rente" value="montant" checked><span>Le montant mensuel souhaité<span class="detail">le simulateur calcule la durée de service</span></span></label>
               <label><input type="radio" name="g-mode-rente" value="duree"><span>La durée souhaitée<span class="detail">le simulateur calcule le montant mensuel</span></span></label>
+              <label><input type="radio" name="g-mode-rente" value="avie"><span>La rente à vie<span class="detail">montant soutenable calculé, capital jamais épuisé</span></span></label>
             </div>
             <label class="champ" id="g-ligne-rente-montant" style="margin-top:10px">Rente mensuelle souhaitée
               <span class="suffixe"><input type="text" inputmode="numeric" id="g-rente" value="300 000" autocomplete="off"><span class="unite">F CFA</span></span>
@@ -403,6 +408,7 @@
             <div class="choix-liste">
               <label><input type="radio" name="r-mode" value="montant" checked><span>Le montant de la rente<span class="detail">durée de service calculée</span></span></label>
               <label><input type="radio" name="r-mode" value="duree"><span>La durée de service<span class="detail">montant mensuel calculé</span></span></label>
+              <label><input type="radio" name="r-mode" value="avie"><span>La rente à vie<span class="detail">montant calculé pour ne jamais épuiser le capital</span></span></label>
             </div>
           </div>
           <label class="champ" id="r-ligne-montant" style="margin-top:10px">Rente mensuelle souhaitée
@@ -434,6 +440,7 @@
             <div class="choix-liste">
               <label><input type="radio" name="p-mode" value="montant" checked><span>Le montant de la rente<span class="detail">durée de service calculée</span></span></label>
               <label><input type="radio" name="p-mode" value="duree"><span>La durée de service<span class="detail">montant mensuel calculé</span></span></label>
+              <label><input type="radio" name="p-mode" value="avie"><span>La rente à vie<span class="detail">montant calculé pour ne jamais épuiser le capital</span></span></label>
             </div>
           </div>
           <label class="champ" id="p-ligne-montant" style="margin-top:10px">Rente mensuelle souhaitée
@@ -477,7 +484,18 @@
       </section>
 
       <div class="barre-actions">
+        <button type="button" class="bouton-second" id="btn-email">Recevoir par e-mail</button>
         <button type="button" class="bouton-second" id="btn-pdf">Télécharger le rapport (PDF)</button>
+      </div>
+
+      <div class="carte panneau-email" id="panneau-email" hidden>
+        <label class="champ" for="email-dest">Votre adresse e-mail</label>
+        <div class="ligne-email">
+          <input type="email" id="email-dest" placeholder="vous@exemple.com" autocomplete="email">
+          <button type="button" class="bouton" id="btn-envoyer-email">Envoyer le résumé</button>
+        </div>
+        <p class="note-frais">Adresse utilisée uniquement pour cet envoi — elle n’est ni conservée, ni partagée.</p>
+        <p class="note-frais" id="email-statut" role="status"></p>
       </div>
 
       <section class="carte" style="overflow-x:auto">
@@ -507,6 +525,7 @@
 </footer>
 
 <script src="vendeur/jspdf.umd.min.js" defer></script>
+<script src="vendeur/emailjs.min.js" defer></script>
 <script>
 "use strict";
 /* ————————————————— Données des fonds (engendrées par outil/integrer_vl.py) ————————————————— */
@@ -583,14 +602,17 @@ function simulerRente(r, capital, opts){
   const e=(opts.entreePct||0)/100, s=(opts.sortiePct||0)/100;
   let K=capital*(1-e);
   const investi=K;
-  let W;
-  if(opts.dureeAnnees){
+  let W, aVie=false;
+  if(opts.aVieDemande){
+    W=K*im/(1+im);
+    aVie=true;
+  } else if(opts.dureeAnnees){
     const n=Math.round(opts.dureeAnnees*12);
     W = im>1e-12 ? K*im/((1-Math.pow(1+im,-n))*(1+im)) : K/n;
   } else {
     W=(opts.renteNette||0)/(1-s);
+    aVie = W<=K*im/(1+im)*(1+1e-12);
   }
-  let aVie = !opts.dureeAnnees && W<=K*im/(1+im)*(1+1e-12);
   const points=[{cap:K,percu:0}];
   let percu=0, m=0, dernierRetrait=W;
   const capMois=aVie?MOIS_AFFICHAGE_AVIE:CAP_MOIS_RENTE;
@@ -608,7 +630,7 @@ function simulerRente(r, capital, opts){
   return {
     points, investi,
     retraitBrut:W, renteNette:W*(1-s),
-    aVie, dureeMois:aVie?null:m,
+    aVie, aVieDemande:!!opts.aVieDemande, dureeMois:aVie?null:m,
     totalPercu:aVie?null:percu,
     capFinAVie:aVie?points[points.length-1].cap:0
   };
@@ -619,7 +641,7 @@ function simulerPlan(r, ageA, ageR, initial, mensuel, optsRente, entreePct, sort
   const p1=simulerEpargne(r, initial, mensuel, 1, anneesEpargne, entreePct, 0);
   const M1=anneesEpargne*12;
   const capRetraite=p1.cap[M1];
-  const p2=simulerRente(r, capRetraite, {renteNette:optsRente.renteNette, dureeAnnees:optsRente.dureeAnnees, entreePct:0, sortiePct:sortiePct});
+  const p2=simulerRente(r, capRetraite, {renteNette:optsRente.renteNette, dureeAnnees:optsRente.dureeAnnees, aVieDemande:optsRente.aVieDemande, entreePct:0, sortiePct:sortiePct});
   const points=[];
   for(let t=0;t<=M1;t++) points.push({verse:p1.dep[t], cap:p1.cap[t], percu:0});
   for(let u=1;u<p2.points.length;u++) points.push({verse:p1.dep[M1], cap:p2.points[u].cap, percu:p2.points[u].percu});
@@ -685,12 +707,14 @@ function calculer(etat){
     const rr=simulerRente(etat.r,etat.capital,{
       renteNette:etat.modeRente==="montant"?etat.renteNette:null,
       dureeAnnees:etat.modeRente==="duree"?etat.dureeRente:null,
+      aVieDemande:etat.modeRente==="avie",
       entreePct:etat.entree, sortiePct:etat.sortie});
     return {points:rr.points.map(p=>({verse:etat.capital,cap:p.cap,percu:p.percu})), rente:rr, xMode:"annees"};
   }
   const pl=simulerPlan(etat.r,etat.ageA,etat.ageR,etat.initial,etat.mensuel,{
       renteNette:etat.modeRente==="montant"?etat.renteNette:null,
-      dureeAnnees:etat.modeRente==="duree"?etat.dureeRente:null},
+      dureeAnnees:etat.modeRente==="duree"?etat.dureeRente:null,
+      aVieDemande:etat.modeRente==="avie"},
       etat.entree,etat.sortie);
   return {points:pl.points, plan:pl, rente:pl.rente, xMode:"age", moisRetraite:pl.moisRetraite};
 }
@@ -777,12 +801,12 @@ function majTuiles(etat,res){
     const rr=res.rente;
     c.append(
       tuile("Capital placé",F(etat.capital), etat.entree>0?("net investi : "+F(rr.investi)):"investi en une fois"),
-      tuile("Rente mensuelle nette",F(rr.renteNette), etat.sortie>0?("retrait brut : "+F(rr.retraitBrut)):(etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi")),
+      tuile("Rente mensuelle nette",F(rr.renteNette), etat.modeRente==="avie"?"calculée pour préserver le capital":(etat.sortie>0?("retrait brut : "+F(rr.retraitBrut)):(etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi"))),
       rr.aVie
         ? tuile("Servie pendant","À vie","le capital n’est jamais épuisé","pos")
         : tuile("Servie pendant",libDureeMois(rr.dureeMois),"jusqu’à épuisement du capital"),
       rr.aVie
-        ? tuile("Capital après 30 ans",F(rr.capFinAVie),"le capital continue de croître","pos")
+        ? (etat.modeRente==="avie" ? tuile("Capital préservé",F(rr.capFinAVie),"il reste investi, jamais entamé","pos") : tuile("Capital après 30 ans",F(rr.capFinAVie),"le capital continue de croître","pos"))
         : tuile("Total perçu",F(rr.totalPercu),"pour "+F(etat.capital)+" placés")
     );
     return;
@@ -790,12 +814,12 @@ function majTuiles(etat,res){
   const pl=res.plan, rr=pl.rente;
   c.append(
     tuile("Capital à la retraite",F(pl.capRetraite),"à "+etat.ageR+" ans, après "+(etat.ageR-etat.ageA)+" ans d’épargne"),
-    tuile("Rente mensuelle nette",F(rr.renteNette), etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi"),
+    tuile("Rente mensuelle nette",F(rr.renteNette), etat.modeRente==="avie"?"calculée pour préserver le capital":(etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi")),
     rr.aVie
       ? tuile("Servie","À vie","le capital n’est jamais épuisé","pos")
       : tuile("Servie jusqu’à",Math.round(pl.ageFin)+" ans","soit "+libDureeMois(rr.dureeMois)+" de rente"),
     rr.aVie
-      ? tuile("Total versé",F(pl.totalVerse),"rente servie sans épuisement","pos")
+      ? (etat.modeRente==="avie" ? tuile("Capital préservé",F(pl.capRetraite),"il n’est jamais entamé","pos") : tuile("Total versé",F(pl.totalVerse),"rente servie sans épuisement","pos"))
       : tuile("Total perçu",F(rr.totalPercu),"pour "+F(pl.totalVerse)+" versés")
   );
 }
@@ -1108,7 +1132,7 @@ function construireProposition(){
   }
   if(g.scenario==="plan"||g.scenario==="rente"){
     if(modeRente==="montant"){ g.rente=parseMontant($("g-rente").value); if(g.rente<=0) return {erreur:"Indiquez la rente mensuelle souhaitée."}; }
-    else g.renteDuree=borner(parseInt($("g-rente-duree").value,10),1,50);
+    else if(modeRente==="duree") g.renteDuree=borner(parseInt($("g-rente-duree").value,10),1,50);
   }
   /* choix du fonds, règles transparentes */
   const calme=fondsCalme(), dyn=fondsDynamique();
@@ -1176,12 +1200,12 @@ function appliquerProposition(g){
     fixerMontant("p-mensuel",g.mensuel); fixerMontant("p-initial",0);
     document.querySelector("input[name=p-mode][value="+g.modeRente+"]").checked=true;
     $("p-ligne-montant").hidden=g.modeRente!=="montant"; $("p-ligne-duree").hidden=g.modeRente!=="duree";
-    if(g.modeRente==="montant") fixerMontant("p-rente",g.rente); else $("p-duree").value=g.renteDuree;
+    if(g.modeRente==="montant") fixerMontant("p-rente",g.rente); else if(g.modeRente==="duree") $("p-duree").value=g.renteDuree;
   } else if(g.scenario==="rente"){
     fixerMontant("r-capital",g.capital);
     document.querySelector("input[name=r-mode][value="+g.modeRente+"]").checked=true;
     $("r-ligne-montant").hidden=g.modeRente!=="montant"; $("r-ligne-duree").hidden=g.modeRente!=="duree";
-    if(g.modeRente==="montant") fixerMontant("r-rente",g.rente); else $("r-duree").value=g.renteDuree;
+    if(g.modeRente==="montant") fixerMontant("r-rente",g.rente); else if(g.modeRente==="duree") $("r-duree").value=g.renteDuree;
   } else {
     fixerMontant("initial",g.capital||0);
     fixerMontant("versement",g.mensuel||0);
@@ -1233,6 +1257,23 @@ function svgVersPng(largeur,rappel){
   img.onerror=()=>{ URL.revokeObjectURL(url); rappel(null); };
   img.src=url;
 }
+function construirePaires(etat){
+  const nomsScenario={epargne:"Épargne par capitalisation",rente:"Rente tirée du capital",plan:"Plan retraite : épargne puis rente"};
+  const paires=[["Fonds",etat.fonds.nom],["Scénario",nomsScenario[etat.scenario]]];
+  if(etat.scenario==="epargne"){
+  paires.push(["Mise de départ",F(etat.initial)],["Versement",F(etat.versement)+" ("+({1:"mensuel",3:"trimestriel",12:"annuel"})[etat.freq]+")"],["Durée",etat.annees+" ans"]);
+  } else if(etat.scenario==="rente"){
+  paires.push(["Capital placé",F(etat.capital)]);
+  paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:etat.modeRente==="duree"?["Durée souhaitée",etat.dureeRente+" ans"]:["Rente","à vie — capital préservé"]);
+  } else {
+  paires.push(["Âges",etat.ageA+" ans -> retraite à "+etat.ageR+" ans"],["Mise de départ",F(etat.initial)],["Versement mensuel",F(etat.mensuel)]);
+  paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:etat.modeRente==="duree"?["Durée de rente",etat.dureeRente+" ans"]:["Rente","à vie — capital préservé"]);
+  }
+  paires.push(["Rendement appliqué",fmtPct.format(etat.r*100)+" % par an (VL du "+libDate(etat.du)+" au "+libDate(etat.au)+")"]);
+  paires.push(["Droits",fmtPct.format(etat.entree)+" % entrée · "+fmtPct.format(etat.sortie)+" % sortie"]);
+  return paires;
+}
+
 function genererRapport(){
   if(!window.jspdf||!graphe.res){ window.print(); return; }
   const etat=graphe.etat, res=graphe.res;
@@ -1253,22 +1294,10 @@ function genererRapport(){
     doc.text(pdfTexte("Édité le "+auj.getDate()+" "+MOIS_FR[auj.getMonth()]+" "+auj.getFullYear()),L-MG,18.5,{align:"right"});
     y=36;
     /* plan */
-    const nomsScenario={epargne:"Épargne par capitalisation",rente:"Rente tirée du capital",plan:"Plan retraite : épargne puis rente"};
     doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]); doc.setFontSize(8.5); doc.setFont("helvetica","bold");
     doc.text("VOTRE PLAN",MG,y); y+=1.6;
     doc.setDrawColor(FILET[0],FILET[1],FILET[2]); doc.setLineWidth(0.25); doc.line(MG,y,L-MG,y); y+=5.4;
-    const paires=[["Fonds",etat.fonds.nom],["Scénario",nomsScenario[etat.scenario]]];
-    if(etat.scenario==="epargne"){
-      paires.push(["Mise de départ",F(etat.initial)],["Versement",F(etat.versement)+" ("+({1:"mensuel",3:"trimestriel",12:"annuel"})[etat.freq]+")"],["Durée",etat.annees+" ans"]);
-    } else if(etat.scenario==="rente"){
-      paires.push(["Capital placé",F(etat.capital)]);
-      paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:["Durée souhaitée",etat.dureeRente+" ans"]);
-    } else {
-      paires.push(["Âges",etat.ageA+" ans -> retraite à "+etat.ageR+" ans"],["Mise de départ",F(etat.initial)],["Versement mensuel",F(etat.mensuel)]);
-      paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:["Durée de rente",etat.dureeRente+" ans"]);
-    }
-    paires.push(["Rendement appliqué",fmtPct.format(etat.r*100)+" % par an (VL du "+libDate(etat.du)+" au "+libDate(etat.au)+")"]);
-    paires.push(["Droits",fmtPct.format(etat.entree)+" % entrée · "+fmtPct.format(etat.sortie)+" % sortie"]);
+    const paires=construirePaires(etat);
     doc.setFontSize(9.5);
     const colonne=LU/2;
     let col=0, cy=y;
@@ -1356,6 +1385,52 @@ function genererRapport(){
 }
 $("btn-pdf").addEventListener("click",genererRapport);
 
+/* ————————————————— Envoi par e-mail ————————————————— */
+const EMAILJS_CONF={"service": "", "template": "", "publicKey": ""};
+const NOMS_SCENARIO={epargne:"Épargne par capitalisation",rente:"Rente tirée du capital",plan:"Plan retraite : épargne puis rente"};
+function emailConfigure(){ return !!(EMAILJS_CONF.service&&EMAILJS_CONF.template&&EMAILJS_CONF.publicKey&&window.emailjs); }
+function construireResume(etat){
+  const lignes=["SIMULATEUR OPCVM — RÉSUMÉ DE SIMULATION"];
+  const auj=new Date();
+  lignes.push("Édité le "+auj.getDate()+" "+MOIS_FR[auj.getMonth()]+" "+auj.getFullYear());
+  lignes.push("");
+  for(const p of construirePaires(etat)) lignes.push(p[0]+" : "+p[1]);
+  lignes.push("");
+  for(const t of document.querySelectorAll("#tuiles .tuile")){
+    const lib=t.querySelector(".lib").textContent, val=t.querySelector(".val").textContent;
+    const sous=t.querySelector(".sous")?(" ("+t.querySelector(".sous").textContent+")"):"";
+    lignes.push(lib+" : "+val+sous);
+  }
+  lignes.push("");
+  lignes.push("Refaire ou affiner la simulation : https://luckylick07.github.io/Simulateur-OPCVM/");
+  lignes.push("");
+  lignes.push("Document pédagogique — ni conseil en investissement, ni offre de souscription, ni promesse de rendement. Les performances passées ne préjugent pas des performances futures.");
+  return lignes.join("\n").replace(/[\u202f\u00a0]/g," ");
+}
+$("btn-email").addEventListener("click",()=>{
+  const p=$("panneau-email"); p.hidden=!p.hidden;
+  if(!p.hidden) $("email-dest").focus();
+});
+$("btn-envoyer-email").addEventListener("click",()=>{
+  const statut=$("email-statut");
+  const adr=$("email-dest").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adr)){ statut.textContent="Adresse e-mail invalide."; return; }
+  if(!graphe.res){ statut.textContent="Lancez d’abord une simulation."; return; }
+  const etat=graphe.etat, resume=construireResume(etat);
+  if(emailConfigure()){
+    statut.textContent="Envoi en cours…";
+    try{ window.emailjs.init({publicKey:EMAILJS_CONF.publicKey}); }catch(e){}
+    window.emailjs.send(EMAILJS_CONF.service,EMAILJS_CONF.template,{
+      to_email:adr, fonds:etat.fonds.nom, scenario:NOMS_SCENARIO[etat.scenario],
+      resume:resume, lien:"https://luckylick07.github.io/Simulateur-OPCVM/"
+    }).then(()=>{ statut.textContent="Envoyé. Vérifiez votre boîte de réception (et les indésirables)."; })
+      .catch(err=>{ statut.textContent="L’envoi a échoué ("+((err&&err.text)||"erreur réseau")+"). Réessayez plus tard."; });
+  } else {
+    window.location.href="mailto:"+adr+"?subject="+encodeURIComponent("Votre simulation — "+etat.fonds.nom)+"&body="+encodeURIComponent(resume);
+    statut.textContent="Votre messagerie s’est ouverte avec le résumé prérédigé — appuyez sur Envoyer.";
+  }
+});
+
 /* ————————————————— Démarrage ————————————————— */
 (function(){
   const toutes=FONDS.flatMap(f=>f.labels).sort();
@@ -1369,7 +1444,7 @@ basculerScenario();
 vueDepuisHash();
 
 /* Exposé pour vérification automatisée */
-window.__moteur={rendementAnnualise,simulerEpargne,simulerRente,simulerPlan,FONDS,construireProposition};
+window.__moteur={rendementAnnualise,simulerEpargne,simulerRente,simulerPlan,FONDS,construireProposition,emailConfigure,construireResume:()=>construireResume(graphe.etat)};
 </script>
 </body>
 </html>

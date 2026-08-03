@@ -31,6 +31,11 @@ REGLAGES = {
     "capital": {"ordre": 2, "entree": 1.5, "sortie": 1.5},
 }
 
+# ————— Envoi du résumé par e-mail (EmailJS) —————
+# Laisser vide tant que le compte n'est pas configuré : le bouton bascule
+# alors sur un brouillon dans la messagerie du visiteur.
+EMAILJS = {"service": "", "template": "", "publicKey": ""}
+
 
 def lire_texte(chemin: Path) -> str:
     for enc in ("utf-8-sig", "cp1252", "latin-1"):
@@ -163,10 +168,12 @@ def main():
     liste = [f["donnees"] for f in fonds]
 
     gabarit = GABARIT.read_text(encoding="utf-8")
-    if "__FONDSDATA__" not in gabarit:
-        raise SystemExit("Repère __FONDSDATA__ introuvable dans le gabarit.")
+    for repere in ("__FONDSDATA__", "__EMAILJSCONF__"):
+        if repere not in gabarit:
+            raise SystemExit(f"Repère {repere} introuvable dans le gabarit.")
     SORTIE.write_text(
-        gabarit.replace("__FONDSDATA__", json.dumps(liste, ensure_ascii=False)),
+        gabarit.replace("__FONDSDATA__", json.dumps(liste, ensure_ascii=False))
+        .replace("__EMAILJSCONF__", json.dumps(EMAILJS)),
         encoding="utf-8",
     )
 

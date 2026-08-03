@@ -36,6 +36,16 @@ versement) et de sortie (sur chaque retrait ou la valeur finale) s'ajoutent.
 Les droits d'entrée et de sortie proposés par défaut pour chaque fonds se
 règlent dans le dictionnaire `REGLAGES` en tête de `outil/integrer_vl.py`.
 
+## Envoi du résumé par e-mail
+
+Le bouton « Recevoir par e-mail » fonctionne dans deux modes. Tant que le
+dictionnaire `EMAILJS` en tête de `outil/integrer_vl.py` est vide, il ouvre la
+messagerie du visiteur avec le résumé prérédigé (aucun service tiers). Une fois
+les trois clés renseignées (`service`, `template`, `publicKey` d'un compte
+EmailJS) et `index.html` régénéré, l'envoi devient automatique depuis la page.
+Dans le compte EmailJS, restreindre les origines autorisées à
+`luckylick07.github.io` pour éviter tout usage du quota par un tiers.
+
 ## Avertissement
 
 Outil pédagogique. Il ne constitue ni un conseil en investissement, ni une offre
