@@ -4,24 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Simulateur OPCVM — projetez votre épargne en FCP (UMOA)</title>
-<meta name="description" content="Simulateur d'épargne en fonds communs de placement de l'UMOA : projection fondée sur l'historique des valeurs liquidatives.">
+<meta name="description" content="Simulateur d'épargne en fonds communs de placement de l'UMOA : épargne, rente, plan retraite — projections fondées sur l'historique des valeurs liquidatives.">
 <style>
   :root{
     color-scheme: light;
-    /* — Charte « vert croissance & ambre » (validée CVD, modes clair+sombre) — */
-    --page:#F6F1E6;            /* plan de page, crème chaleureux */
-    --card:#FFFEFA;            /* surface des cartes et du graphique */
-    --ink:#1C2B22;             /* encre principale */
-    --ink-2:#4E5D52;           /* encre secondaire */
-    --muted:#75816F;           /* axes, mentions */
-    --grid:#EAE4D6;            /* filets hairline */
-    --baseline:#C9C2B0;        /* axe de base */
+    /* — Charte « vert croissance & ambre » + bleu (3 séries validées CVD, clair+sombre) — */
+    --page:#F6F1E6;
+    --card:#FFFEFA;
+    --ink:#1C2B22;
+    --ink-2:#4E5D52;
+    --muted:#75816F;
+    --grid:#EAE4D6;
+    --baseline:#C9C2B0;
     --hairline:rgba(28,43,34,.14);
-    --serie-capital:#0E9F6E;   /* série 1 : capital */
-    --serie-verse:#C98500;     /* série 2 : montant versé */
-    --bandeau:#0F4C33;         /* bandeau d'en-tête, vert profond */
+    --serie-capital:#0E9F6E;
+    --serie-verse:#C98500;
+    --serie-percu:#2A78D6;
+    --bandeau:#0F4C33;
     --creme:#F6F1E6;
-    --gain:#0A6B3D;            /* texte de gain (jamais la couleur de série) */
+    --gain:#0A6B3D;
     --perte:#B23A2E;
     --focus:#0E9F6E;
   }
@@ -38,6 +39,7 @@
       --hairline:rgba(233,242,234,.16);
       --serie-capital:#0DA07A;
       --serie-verse:#C98500;
+      --serie-percu:#3987E5;
       --bandeau:#0F3B29;
       --creme:#E9F2EA;
       --gain:#3FBF8C;
@@ -46,32 +48,88 @@
     }
   }
   *{box-sizing:border-box}
+  [hidden]{display:none!important}
   html{-webkit-text-size-adjust:100%}
   body{
     margin:0; background:var(--page); color:var(--ink);
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
     font-size:15px; line-height:1.5;
   }
-  h1,h2,.serif{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600}
+  h1,h2,h3,.serif{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600}
 
   /* ————— Bandeau ————— */
   header.bandeau{background:var(--bandeau); color:var(--creme); border-bottom:3px solid var(--serie-verse);}
   .bandeau-int{max-width:1120px;margin:0 auto;padding:26px 20px 22px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;}
   .bandeau h1{margin:0;font-size:30px;letter-spacing:.2px}
+  .bandeau h1 a{color:inherit;text-decoration:none}
   .bandeau .sous-titre{margin:0;font-size:14.5px;opacity:.92;flex:1 1 260px}
   .etiquette{
     font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
     border:1px solid rgba(246,241,230,.45);padding:4px 9px;color:var(--creme);border-radius:2px;
   }
 
-  /* ————— Gabarit ————— */
-  main{max-width:1120px;margin:0 auto;padding:26px 20px 8px;display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
-  @media (max-width:920px){ main{grid-template-columns:1fr} }
+  /* ————— Gabarit général ————— */
+  .contenu{max-width:1120px;margin:0 auto;padding:26px 20px 8px}
+  .vue{display:none}
+  .vue.active{display:block}
+  .fil{max-width:1120px;margin:0 auto;padding:14px 20px 0;font-size:13px}
+  .fil a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--baseline)}
+  .fil a:hover{color:var(--ink)}
   .carte{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:20px 20px 18px}
   .titre-section{
     font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);
     margin:0 0 14px;padding-bottom:9px;border-bottom:1px solid var(--grid);font-weight:600;
   }
+  .bouton{
+    display:inline-block;background:var(--bandeau);color:var(--creme);border:1px solid var(--bandeau);
+    font:inherit;font-weight:600;padding:10px 18px;border-radius:2px;cursor:pointer;
+  }
+  .bouton:hover{filter:brightness(1.12)}
+  .bouton-second{
+    display:inline-block;background:transparent;color:var(--ink);border:1px solid var(--baseline);
+    font:inherit;padding:9px 16px;border-radius:2px;cursor:pointer;
+  }
+  .bouton-second:hover{border-color:var(--ink-2)}
+  .bouton:focus-visible,.bouton-second:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+  /* ————— Accueil ————— */
+  .accueil-intro{max-width:64ch;margin:6px 0 22px}
+  .accueil-intro h2{font-size:24px;margin:0 0 8px}
+  .accueil-intro p{color:var(--ink-2);margin:0}
+  .portes{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:760px){ .portes{grid-template-columns:1fr} }
+  .porte{
+    text-align:left;background:var(--card);border:1px solid var(--hairline);border-radius:3px;
+    padding:24px 22px 20px;cursor:pointer;font:inherit;color:var(--ink);display:block;width:100%;
+  }
+  .porte:hover{border-color:var(--serie-capital)}
+  .porte:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .porte .num{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .porte h3{font-size:21px;margin:6px 0 8px}
+  .porte p{margin:0;color:var(--ink-2);font-size:14px}
+  .porte .appel{display:inline-block;margin-top:14px;font-weight:600;color:var(--gain);font-size:14px;border-bottom:1px solid var(--gain)}
+  .accueil-note{margin:20px 2px 0;font-size:12.5px;color:var(--muted)}
+
+  /* ————— Parcours guidé ————— */
+  .guide-grille{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+  @media (max-width:920px){ .guide-grille{grid-template-columns:1fr} }
+  .question{margin:0 0 16px}
+  .question .intitule{display:block;font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:6px}
+  .choix-liste{display:flex;flex-direction:column;gap:6px}
+  .choix-liste label{
+    border:1px solid var(--baseline);border-radius:2px;padding:9px 12px;cursor:pointer;
+    display:flex;gap:9px;align-items:baseline;font-size:14px;
+  }
+  .choix-liste label:has(input:checked){border-color:var(--bandeau);background:color-mix(in srgb, var(--bandeau) 7%, var(--card));font-weight:600}
+  .choix-liste input{accent-color:var(--serie-capital)}
+  .choix-liste .detail{font-weight:400;color:var(--ink-2);font-size:12.5px;display:block}
+  .proposition h3{font-size:20px;margin:2px 0 2px}
+  .proposition .scenario-nom{color:var(--ink-2);font-size:14px;margin:0 0 10px}
+  .proposition ul{margin:10px 0 6px;padding-left:18px}
+  .proposition li{margin:5px 0;font-size:13.5px;color:var(--ink-2)}
+  .proposition .avert{font-size:12px;color:var(--muted);border-top:1px solid var(--grid);padding-top:10px;margin-top:12px}
+  .proposition .actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .proposition-vide{color:var(--muted);font-size:14px;padding:34px 8px;text-align:center}
 
   /* ————— Formulaire ————— */
   form{display:flex;flex-direction:column;gap:15px}
@@ -80,32 +138,35 @@
     margin-top:5px;width:100%;font:inherit;color:var(--ink);background:var(--card);
     border:1px solid var(--baseline);border-radius:2px;padding:8px 10px;
   }
-  .champ input:focus,.champ select:focus,.freq label:focus-within{outline:2px solid var(--focus);outline-offset:1px}
+  .champ input:focus,.champ select:focus,.segmente label:focus-within{outline:2px solid var(--focus);outline-offset:1px}
   .suffixe{position:relative;display:block;margin-top:5px}
   .suffixe input{margin-top:0;padding-right:64px}
   .suffixe .unite{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12.5px;color:var(--muted);pointer-events:none}
-  .freq{display:flex;border:1px solid var(--baseline);border-radius:2px;overflow:hidden;margin-top:5px}
-  .freq label{flex:1;text-align:center;font-size:13px;color:var(--ink-2);padding:7px 2px;cursor:pointer;border-left:1px solid var(--baseline)}
-  .freq label:first-child{border-left:none}
-  .freq input{position:absolute;opacity:0;pointer-events:none}
-  .freq label:has(input:checked){background:var(--bandeau);color:var(--creme);font-weight:600}
+  .segmente{display:flex;border:1px solid var(--baseline);border-radius:2px;overflow:hidden;margin-top:5px}
+  .segmente label{flex:1;text-align:center;font-size:13px;color:var(--ink-2);padding:7px 2px;cursor:pointer;border-left:1px solid var(--baseline)}
+  .segmente label:first-child{border-left:none}
+  .segmente input{position:absolute;opacity:0;pointer-events:none}
+  .segmente label:has(input:checked){background:var(--bandeau);color:var(--creme);font-weight:600}
   .ligne-duree{display:flex;align-items:center;gap:12px;margin-top:6px}
   .ligne-duree input[type=range]{flex:1;accent-color:var(--serie-capital)}
   .ligne-duree output{font-weight:600;min-width:58px;text-align:right;font-variant-numeric:tabular-nums}
+  .deux-champs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   fieldset.frais{border:1px solid var(--grid);border-radius:2px;padding:12px 14px 13px;margin:2px 0 0}
   fieldset.frais legend{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding:0 6px;font-weight:600}
-  .frais .deux{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .note-frais{font-size:12px;color:var(--muted);margin:9px 0 0}
+  .erreur{display:none;font-size:12.5px;color:var(--perte);border:1px solid var(--perte);border-radius:2px;padding:8px 11px}
+  .erreur.visible{display:block}
 
   /* fiche du fonds */
   .fiche-fonds{border-top:1px solid var(--grid);margin-top:4px;padding-top:11px;font-size:13px;color:var(--ink-2)}
-  .fiche-fonds .type{font-weight:600;color:var(--ink)}
   .fiche-fonds .rdt{margin:8px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
   .fiche-fonds .rdt-val{color:var(--ink);font-size:17px;font-weight:600;margin:1px 0 2px}
   .fiche-fonds svg{display:block;margin-top:6px;color:var(--muted)}
   .fiche-fonds .periode{font-size:12px;color:var(--muted)}
 
   /* ————— Résultats ————— */
+  main.simulateur{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+  @media (max-width:920px){ main.simulateur{grid-template-columns:1fr} }
   .colonne-resultats{display:flex;flex-direction:column;gap:22px;min-width:0}
   .tuiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media (max-width:1060px){ .tuiles{grid-template-columns:repeat(2,1fr)} }
@@ -117,26 +178,26 @@
 
   .entete-graphe{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:4px}
   .entete-graphe h2{font-size:18px;margin:0}
-  .entete-graphe .sous{font-size:12.5px;color:var(--muted)}
+  .entete-graphe .sous{font-size:12.5px;color:var(--muted);flex:1 1 auto}
   .legende{display:flex;gap:18px;margin:10px 0 2px;font-size:13px;color:var(--ink-2);flex-wrap:wrap}
   .legende .cle{display:inline-flex;align-items:center;gap:7px}
   .legende .trait{width:18px;height:0;border-top:2.5px solid;border-radius:1px}
   .zone-graphe{position:relative}
   .zone-graphe svg{display:block;width:100%;height:auto}
   .zone-graphe svg:focus{outline:2px solid var(--focus);outline-offset:3px}
-  .vide{color:var(--muted);font-size:14px;text-align:center;padding:70px 10px}
 
-  /* infobulle */
   .infobulle{
     position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--hairline);
     border-radius:3px;padding:9px 12px;font-size:12.5px;box-shadow:0 2px 10px rgba(20,30,24,.10);
-    min-width:190px;display:none;z-index:5;
+    min-width:200px;display:none;z-index:5;
   }
   .infobulle .quand{color:var(--muted);font-size:11.5px;margin-bottom:5px}
   .infobulle .rangee{display:flex;align-items:center;gap:8px;margin-top:3px}
   .infobulle .cle-trait{width:14px;height:0;border-top:2.5px solid;flex:none;border-radius:1px}
   .infobulle .valeur{font-weight:600;font-variant-numeric:tabular-nums}
   .infobulle .qui{color:var(--ink-2)}
+
+  .barre-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 
   /* ————— Tableau ————— */
   table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -150,151 +211,309 @@
   /* ————— Mentions ————— */
   .mentions{max-width:1120px;margin:8px auto 0;padding:18px 20px 30px}
   .mentions h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);border-top:1px solid var(--baseline);padding-top:14px;margin:0 0 8px;font-family:inherit;font-weight:600}
-  .mentions p{font-size:12.5px;color:var(--ink-2);margin:6px 0;max-width:76ch}
+  .mentions p{font-size:12.5px;color:var(--ink-2);margin:6px 0;max-width:78ch}
   footer{border-top:1px solid var(--hairline);color:var(--muted);font-size:12.5px}
   footer .int{max-width:1120px;margin:0 auto;padding:14px 20px 20px;display:flex;flex-wrap:wrap;gap:6px 22px;justify-content:space-between}
   footer a{color:var(--ink-2)}
-  @media print{ header.bandeau{-webkit-print-color-adjust:exact;print-color-adjust:exact} .infobulle{display:none!important} }
+  @media print{
+    header.bandeau{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .infobulle,.barre-actions,.fil{display:none!important}
+  }
 </style>
 </head>
 <body>
 
 <header class="bandeau">
   <div class="bandeau-int">
-    <h1>Simulateur OPCVM</h1>
+    <h1><a href="#accueil">Simulateur OPCVM</a></h1>
     <p class="sous-titre">Projetez votre épargne en fonds communs de placement de l’UMOA</p>
-    <span class="etiquette" id="etiquette-vl">Version 1</span>
+    <span class="etiquette" id="etiquette-vl">Version 2</span>
   </div>
 </header>
 
-<main>
-  <!-- ——————— Panneau de saisie ——————— -->
-  <section class="carte" aria-labelledby="titre-plan">
-    <h2 class="titre-section" id="titre-plan">Votre plan d’épargne</h2>
-    <form id="formulaire" autocomplete="off">
-      <label class="champ">Fonds
-        <select id="fonds"></select>
-      </label>
+<nav class="fil" id="fil" hidden><a href="#accueil">← Accueil</a></nav>
 
-      <div class="fiche-fonds" id="fiche-fonds"></div>
-
-      <label class="champ">Mise de départ
-        <span class="suffixe"><input type="text" inputmode="numeric" id="initial" value="100 000" autocomplete="off"><span class="unite">F CFA</span></span>
-      </label>
-
-      <label class="champ">Versement régulier
-        <span class="suffixe"><input type="text" inputmode="numeric" id="versement" value="25 000" autocomplete="off"><span class="unite">F CFA</span></span>
-      </label>
-
-      <div>
-        <span class="champ" style="display:block">Fréquence des versements</span>
-        <div class="freq" role="radiogroup" aria-label="Fréquence des versements">
-          <label><input type="radio" name="freq" value="1" checked>Mensuelle</label>
-          <label><input type="radio" name="freq" value="3">Trimestrielle</label>
-          <label><input type="radio" name="freq" value="12">Annuelle</label>
-        </div>
-      </div>
-
-      <div>
-        <label class="champ" for="duree">Durée de placement</label>
-        <div class="ligne-duree">
-          <input type="range" id="duree" min="1" max="30" value="10">
-          <output for="duree" id="duree-affichee">10 ans</output>
-        </div>
-      </div>
-
-      <fieldset class="frais">
-        <legend>Frais</legend>
-        <div class="deux">
-          <label class="champ">Droits d’entrée
-            <span class="suffixe"><input type="number" id="entree" min="0" max="10" step="0.1" value="2"><span class="unite">%</span></span>
-          </label>
-          <label class="champ">Droits de sortie
-            <span class="suffixe"><input type="number" id="sortie" min="0" max="10" step="0.1" value="0"><span class="unite">%</span></span>
-          </label>
-        </div>
-        <p class="note-frais">Les frais de gestion sont déjà reflétés dans les valeurs liquidatives, donc dans le rendement appliqué.</p>
-      </fieldset>
-    </form>
-  </section>
-
-  <!-- ——————— Résultats ——————— -->
-  <div class="colonne-resultats">
-    <div class="tuiles" id="tuiles" aria-live="polite"></div>
-
-    <section class="carte" aria-labelledby="titre-graphe">
-      <div class="entete-graphe">
-        <h2 id="titre-graphe">Évolution de votre épargne</h2>
-        <span class="sous" id="sous-graphe"></span>
-      </div>
-      <div class="legende" aria-hidden="false">
-        <span class="cle"><span class="trait" style="border-color:var(--serie-capital)"></span>Capital</span>
-        <span class="cle"><span class="trait" style="border-color:var(--serie-verse)"></span>Total versé</span>
-      </div>
-      <div class="zone-graphe" id="zone-graphe">
-        <svg id="graphe" role="img" tabindex="0"
-             aria-label="Graphique : évolution du capital et du total versé au fil des années. Les valeurs détaillées figurent dans le tableau ci-dessous."></svg>
-        <div class="infobulle" id="infobulle"></div>
-      </div>
-    </section>
-
-    <section class="carte" style="overflow-x:auto">
-      <table id="tableau">
-        <caption>Détail année par année</caption>
-        <thead>
-          <tr><th scope="col">Année</th><th scope="col">Total versé</th><th scope="col">Capital</th><th scope="col">Gain latent</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
+<!-- ═══════════════ ACCUEIL ═══════════════ -->
+<section class="vue" id="vue-accueil">
+  <div class="contenu">
+    <div class="accueil-intro">
+      <h2>Que voulez-vous simuler&nbsp;?</h2>
+      <p>Épargne régulière, rente tirée d’un capital, ou plan retraite complet&nbsp;: les projections s’appuient sur l’historique réel des valeurs liquidatives des fonds.</p>
+    </div>
+    <div class="portes">
+      <button type="button" class="porte" id="porte-guide">
+        <span class="num">Première visite</span>
+        <h3>Me laisser guider</h3>
+        <p>Décrivez votre projet en quelques réponses — âge, capacité d’épargne, objectif. Le simulateur vous propose le fonds et le type de simulation qui correspondent, en expliquant pourquoi.</p>
+        <span class="appel">Commencer →</span>
+      </button>
+      <button type="button" class="porte" id="porte-libre">
+        <span class="num">Je sais ce que je cherche</span>
+        <h3>Simuler librement</h3>
+        <p>Choisissez vous-même le fonds et le scénario — épargne, rente ou plan retraite — et réglez chaque paramètre. Résultats détaillés, graphique et rapport PDF.</p>
+        <span class="appel">Ouvrir le simulateur →</span>
+      </button>
+    </div>
+    <p class="accueil-note" id="note-accueil"></p>
   </div>
-</main>
+</section>
+
+<!-- ═══════════════ PARCOURS GUIDÉ ═══════════════ -->
+<section class="vue" id="vue-guide">
+  <div class="contenu">
+    <div class="guide-grille">
+      <section class="carte" aria-labelledby="titre-guide">
+        <h2 class="titre-section" id="titre-guide">Décrivez votre projet</h2>
+        <form id="form-guide" autocomplete="off">
+          <div class="question">
+            <span class="intitule">Votre objectif</span>
+            <div class="choix-liste">
+              <label><input type="radio" name="g-objectif" value="retraite" checked><span>Préparer ma retraite<span class="detail">épargner chaque mois, puis toucher une rente</span></span></label>
+              <label><input type="radio" name="g-objectif" value="fructifier"><span>Placer une somme disponible<span class="detail">un capital à faire travailler dès maintenant</span></span></label>
+              <label><input type="radio" name="g-objectif" value="epargner"><span>Épargner régulièrement<span class="detail">me constituer un capital pas à pas</span></span></label>
+            </div>
+          </div>
+
+          <div id="g-bloc-retraite">
+            <div class="deux-champs">
+              <label class="champ">Votre âge actuel
+                <span class="suffixe"><input type="number" id="g-age" min="16" max="90" value="35"><span class="unite">ans</span></span>
+              </label>
+              <label class="champ">Âge de départ à la retraite
+                <span class="suffixe"><input type="number" id="g-age-retraite" min="30" max="90" value="60"><span class="unite">ans</span></span>
+              </label>
+            </div>
+            <label class="champ" style="margin-top:12px">Épargne mensuelle envisagée
+              <span class="suffixe"><input type="text" inputmode="numeric" id="g-mensuel" value="50 000" autocomplete="off"><span class="unite">F CFA</span></span>
+            </label>
+          </div>
+
+          <div id="g-bloc-fructifier" hidden>
+            <label class="champ">Montant disponible
+              <span class="suffixe"><input type="text" inputmode="numeric" id="g-capital" value="10 000 000" autocomplete="off"><span class="unite">F CFA</span></span>
+            </label>
+            <div class="question" style="margin-top:12px">
+              <span class="intitule">Souhaitez-vous en tirer un revenu régulier&nbsp;?</span>
+              <div class="choix-liste">
+                <label><input type="radio" name="g-revenu" value="non" checked><span>Non — faire croître le capital<span class="detail">je fixerai un horizon de placement</span></span></label>
+                <label><input type="radio" name="g-revenu" value="oui"><span>Oui — percevoir une rente mensuelle<span class="detail">dès maintenant, jusqu’à épuisement du capital</span></span></label>
+              </div>
+            </div>
+            <label class="champ" id="g-ligne-horizon">Horizon de placement
+              <span class="suffixe"><input type="number" id="g-horizon" min="1" max="40" value="8"><span class="unite">ans</span></span>
+            </label>
+          </div>
+
+          <div id="g-bloc-epargner" hidden>
+            <label class="champ">Épargne mensuelle envisagée
+              <span class="suffixe"><input type="text" inputmode="numeric" id="g-mensuel2" value="25 000" autocomplete="off"><span class="unite">F CFA</span></span>
+            </label>
+            <label class="champ" style="margin-top:12px">Pendant combien d’années&nbsp;?
+              <span class="suffixe"><input type="number" id="g-duree" min="1" max="40" value="10"><span class="unite">ans</span></span>
+            </label>
+          </div>
+
+          <div class="question" id="g-bloc-rente" style="margin-top:2px">
+            <span class="intitule">Pour la rente, que préférez-vous fixer&nbsp;?</span>
+            <div class="choix-liste">
+              <label><input type="radio" name="g-mode-rente" value="montant" checked><span>Le montant mensuel souhaité<span class="detail">le simulateur calcule la durée de service</span></span></label>
+              <label><input type="radio" name="g-mode-rente" value="duree"><span>La durée souhaitée<span class="detail">le simulateur calcule le montant mensuel</span></span></label>
+            </div>
+            <label class="champ" id="g-ligne-rente-montant" style="margin-top:10px">Rente mensuelle souhaitée
+              <span class="suffixe"><input type="text" inputmode="numeric" id="g-rente" value="300 000" autocomplete="off"><span class="unite">F CFA</span></span>
+            </label>
+            <label class="champ" id="g-ligne-rente-duree" style="margin-top:10px" hidden>Durée de service souhaitée
+              <span class="suffixe"><input type="number" id="g-rente-duree" min="1" max="50" value="20"><span class="unite">ans</span></span>
+            </label>
+          </div>
+
+          <div class="question">
+            <span class="intitule">Votre tempérament d’épargnant</span>
+            <div class="choix-liste">
+              <label><input type="radio" name="g-pref" value="regularite" checked><span>La régularité avant tout<span class="detail">je préfère une progression sans à-coups</span></span></label>
+              <label><input type="radio" name="g-pref" value="performance"><span>Viser plus haut, accepter des à-coups<span class="detail">les fluctuations ne m’effraient pas</span></span></label>
+            </div>
+          </div>
+
+          <div class="erreur" id="g-erreur"></div>
+          <div><button type="submit" class="bouton">Voir la proposition</button></div>
+        </form>
+      </section>
+
+      <section class="carte proposition" aria-labelledby="titre-proposition" aria-live="polite">
+        <h2 class="titre-section" id="titre-proposition">Notre proposition</h2>
+        <div id="proposition-contenu"><p class="proposition-vide">Répondez aux questions ci-contre puis cliquez sur «&nbsp;Voir la proposition&nbsp;».</p></div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SIMULATEUR ═══════════════ -->
+<section class="vue" id="vue-simulateur">
+  <main class="contenu simulateur">
+    <section class="carte" aria-labelledby="titre-plan">
+      <h2 class="titre-section" id="titre-plan">Votre plan</h2>
+      <form id="formulaire" autocomplete="off">
+        <label class="champ">Fonds
+          <select id="fonds"></select>
+        </label>
+        <div class="fiche-fonds" id="fiche-fonds"></div>
+
+        <div>
+          <span class="champ" style="display:block">Type de simulation</span>
+          <div class="segmente" role="radiogroup" aria-label="Type de simulation">
+            <label><input type="radio" name="scenario" value="epargne" checked>Épargne</label>
+            <label><input type="radio" name="scenario" value="rente">Rente</label>
+            <label><input type="radio" name="scenario" value="plan">Plan retraite</label>
+          </div>
+        </div>
+
+        <!-- Épargne -->
+        <div id="champs-epargne">
+          <label class="champ">Mise de départ
+            <span class="suffixe"><input type="text" inputmode="numeric" id="initial" value="100 000" autocomplete="off"><span class="unite">F CFA</span></span>
+          </label>
+          <label class="champ" style="margin-top:12px">Versement régulier
+            <span class="suffixe"><input type="text" inputmode="numeric" id="versement" value="25 000" autocomplete="off"><span class="unite">F CFA</span></span>
+          </label>
+          <div style="margin-top:12px">
+            <span class="champ" style="display:block">Fréquence des versements</span>
+            <div class="segmente" role="radiogroup" aria-label="Fréquence des versements">
+              <label><input type="radio" name="freq" value="1" checked>Mensuelle</label>
+              <label><input type="radio" name="freq" value="3">Trimestrielle</label>
+              <label><input type="radio" name="freq" value="12">Annuelle</label>
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <label class="champ" for="duree">Durée de placement</label>
+            <div class="ligne-duree">
+              <input type="range" id="duree" min="1" max="30" value="10">
+              <output for="duree" id="duree-affichee">10 ans</output>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rente -->
+        <div id="champs-rente" hidden>
+          <label class="champ">Capital placé
+            <span class="suffixe"><input type="text" inputmode="numeric" id="r-capital" value="20 000 000" autocomplete="off"><span class="unite">F CFA</span></span>
+          </label>
+          <div class="question" style="margin-top:12px;margin-bottom:0">
+            <span class="intitule">Que fixez-vous&nbsp;?</span>
+            <div class="choix-liste">
+              <label><input type="radio" name="r-mode" value="montant" checked><span>Le montant de la rente<span class="detail">durée de service calculée</span></span></label>
+              <label><input type="radio" name="r-mode" value="duree"><span>La durée de service<span class="detail">montant mensuel calculé</span></span></label>
+            </div>
+          </div>
+          <label class="champ" id="r-ligne-montant" style="margin-top:10px">Rente mensuelle souhaitée
+            <span class="suffixe"><input type="text" inputmode="numeric" id="r-rente" value="150 000" autocomplete="off"><span class="unite">F CFA</span></span>
+          </label>
+          <label class="champ" id="r-ligne-duree" style="margin-top:10px" hidden>Durée de service
+            <span class="suffixe"><input type="number" id="r-duree" min="1" max="50" value="15"><span class="unite">ans</span></span>
+          </label>
+        </div>
+
+        <!-- Plan retraite -->
+        <div id="champs-plan" hidden>
+          <div class="deux-champs">
+            <label class="champ">Âge actuel
+              <span class="suffixe"><input type="number" id="p-age" min="16" max="90" value="35"><span class="unite">ans</span></span>
+            </label>
+            <label class="champ">Âge de retraite
+              <span class="suffixe"><input type="number" id="p-age-retraite" min="30" max="90" value="60"><span class="unite">ans</span></span>
+            </label>
+          </div>
+          <label class="champ" style="margin-top:12px">Mise de départ (facultative)
+            <span class="suffixe"><input type="text" inputmode="numeric" id="p-initial" value="0" autocomplete="off"><span class="unite">F CFA</span></span>
+          </label>
+          <label class="champ" style="margin-top:12px">Versement mensuel jusqu’à la retraite
+            <span class="suffixe"><input type="text" inputmode="numeric" id="p-mensuel" value="50 000" autocomplete="off"><span class="unite">F CFA</span></span>
+          </label>
+          <div class="question" style="margin-top:12px;margin-bottom:0">
+            <span class="intitule">À la retraite, que fixez-vous&nbsp;?</span>
+            <div class="choix-liste">
+              <label><input type="radio" name="p-mode" value="montant" checked><span>Le montant de la rente<span class="detail">durée de service calculée</span></span></label>
+              <label><input type="radio" name="p-mode" value="duree"><span>La durée de service<span class="detail">montant mensuel calculé</span></span></label>
+            </div>
+          </div>
+          <label class="champ" id="p-ligne-montant" style="margin-top:10px">Rente mensuelle souhaitée
+            <span class="suffixe"><input type="text" inputmode="numeric" id="p-rente" value="300 000" autocomplete="off"><span class="unite">F CFA</span></span>
+          </label>
+          <label class="champ" id="p-ligne-duree" style="margin-top:10px" hidden>Durée de service
+            <span class="suffixe"><input type="number" id="p-duree" min="1" max="50" value="20"><span class="unite">ans</span></span>
+          </label>
+        </div>
+
+        <fieldset class="frais">
+          <legend>Frais</legend>
+          <div class="deux-champs">
+            <label class="champ">Droits d’entrée
+              <span class="suffixe"><input type="number" id="entree" min="0" max="10" step="0.05" value="0"><span class="unite">%</span></span>
+            </label>
+            <label class="champ">Droits de sortie
+              <span class="suffixe"><input type="number" id="sortie" min="0" max="10" step="0.05" value="0"><span class="unite">%</span></span>
+            </label>
+          </div>
+          <p class="note-frais">Frais de gestion déjà reflétés dans les valeurs liquidatives. Les droits de sortie s’appliquent à chaque retrait de rente.</p>
+        </fieldset>
+        <div class="erreur" id="s-erreur"></div>
+      </form>
+    </section>
+
+    <div class="colonne-resultats">
+      <div class="tuiles" id="tuiles" aria-live="polite"></div>
+
+      <section class="carte" aria-labelledby="titre-graphe">
+        <div class="entete-graphe">
+          <h2 id="titre-graphe">Évolution de votre épargne</h2>
+          <span class="sous" id="sous-graphe"></span>
+        </div>
+        <div class="legende" id="legende"></div>
+        <div class="zone-graphe" id="zone-graphe">
+          <svg id="graphe" role="img" tabindex="0"
+               aria-label="Graphique d’évolution. Les valeurs détaillées figurent dans le tableau ci-dessous."></svg>
+          <div class="infobulle" id="infobulle"></div>
+        </div>
+      </section>
+
+      <div class="barre-actions">
+        <button type="button" class="bouton-second" id="btn-pdf">Télécharger le rapport (PDF)</button>
+      </div>
+
+      <section class="carte" style="overflow-x:auto">
+        <table id="tableau">
+          <caption>Détail année par année</caption>
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+</section>
 
 <section class="mentions">
   <h2>Hypothèses et avertissements</h2>
-  <p>Cet outil est fourni à titre pédagogique. Il ne constitue ni un conseil en investissement, ni une offre de souscription, ni une promesse de rendement.</p>
+  <p>Cet outil est fourni à titre pédagogique. Il ne constitue ni un conseil en investissement, ni une offre de souscription, ni une promesse de rendement. La proposition du parcours guidé est établie à partir de vos seules réponses et ne constitue pas une recommandation personnalisée.</p>
   <p>Le rendement appliqué est le rendement annualisé constaté sur l’historique des valeurs liquidatives du fonds sélectionné, projeté à taux constant. Les performances passées ne préjugent pas des performances futures.</p>
-  <p>Hypothèses de calcul : versements en début de période ; droits d’entrée déduits de chaque versement ; droits de sortie appliqués à la valeur finale ; frais de gestion déjà compris dans les valeurs liquidatives ; fiscalité non prise en compte.</p>
+  <p>Hypothèses de calcul&nbsp;: versements et retraits en début de mois&nbsp;; droits d’entrée déduits de chaque versement&nbsp;; droits de sortie appliqués à chaque retrait ou à la valeur finale&nbsp;; frais de gestion déjà compris dans les valeurs liquidatives&nbsp;; rente constante, non revalorisée de l’inflation&nbsp;; fiscalité non prise en compte.</p>
   <p id="mention-source">Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds.</p>
 </section>
 
 <footer>
   <div class="int">
-    <span>Simulateur OPCVM — version 1, août 2026</span>
-    <span>Textes de référence du marché financier : <a href="https://luckylick07.github.io/textes-mfr-umoa/">textes-mfr-umoa</a></span>
+    <span>Simulateur OPCVM — version 2, août 2026</span>
+    <span>Textes de référence du marché financier&nbsp;: <a href="https://luckylick07.github.io/textes-mfr-umoa/">textes-mfr-umoa</a></span>
   </div>
 </footer>
 
+<script src="vendeur/jspdf.umd.min.js" defer></script>
 <script>
 "use strict";
-/* ————————————————————————— Données de démonstration —————————————————————————
-   VL mensuelles fictives (fin de mois), générées pour la maquette.
-   Dans la version définitive, ces données proviendront d'un fichier JSON par fonds. */
+/* ————————————————— Données des fonds (engendrées par outil/integrer_vl.py) ————————————————— */
 const FONDS = __FONDSDATA__;
 
-/* ————————————————————————— Moteur ————————————————————————— */
-function dateISO(label){ const [y,m,j]=label.split("-").map(Number); return new Date(Date.UTC(y,m-1,j)); }
-
-function rendementAnnualise(fonds){
-  const d0=dateISO(fonds.labels[0]), d1=dateISO(fonds.labels[fonds.labels.length-1]);
-  const annees=(d1-d0)/86400000/365.25;
-  const r=Math.pow(fonds.vl[fonds.vl.length-1]/fonds.vl[0], 1/annees)-1;
-  return {r, annees, du:fonds.labels[0], au:fonds.labels[fonds.labels.length-1]};
-}
-
-function simuler(r, initial, versement, freq, annees, entreePct, sortiePct){
-  const M=annees*12, im=Math.pow(1+r,1/12)-1, e=entreePct/100;
-  const cap=[initial*(1-e)], dep=[initial];
-  for(let t=1;t<=M;t++){
-    const d=(versement>0 && (t-1)%freq===0)?versement:0;
-    cap.push((cap[cap.length-1]+d*(1-e))*(1+im));
-    dep.push(dep[dep.length-1]+d);
-  }
-  const brut=cap[M], net=brut*(1-sortiePct/100);
-  return {cap, dep, totalVerse:dep[M], brut, net, fraisEntree:dep[M]*e};
-}
-
-/* ————————————————————————— Formats (fr-FR) ————————————————————————— */
+/* ————————————————— Utilitaires ————————————————— */
+const $=id=>document.getElementById(id);
 const fmtEntier=new Intl.NumberFormat("fr-FR",{maximumFractionDigits:0});
 const fmtDec=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:1,maximumFractionDigits:1});
 const fmtPct=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -307,41 +526,205 @@ const Fcourt=v=>{
   return fmtEntier.format(v);
 };
 const MOIS_FR=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
-const libDate=l=>{const [y,m,j]=l.split("-").map(Number);return (j?j+"\u00a0":"")+MOIS_FR[m-1]+" "+y;};
-function libDuree(annees){
-  const jours=annees*365.25;
-  if(jours<70) return Math.round(jours/7)+" semaines";
-  if(jours<700) return Math.round(jours/30.44)+" mois";
-  return (Math.round(annees*10)/10).toLocaleString("fr-FR")+" ans";
+const libDate=l=>{const [y,m,j]=l.split("-").map(Number);return (j?j+" ":"")+MOIS_FR[m-1]+" "+y;};
+function libDureeMois(mois){
+  const a=Math.floor(mois/12), m=mois%12;
+  if(a<=0) return m+" mois";
+  if(m===0) return a+" an"+(a>1?"s":"");
+  return a+" an"+(a>1?"s":"")+" et "+m+" mois";
 }
-
-/* ————————————————————————— État & lecture du formulaire ————————————————————————— */
-const $=id=>document.getElementById(id);
-const selFonds=$("fonds");
-FONDS.forEach((f,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=f.nom; selFonds.appendChild(o); });
-
+function libDureeAnnees(annees){
+  const jours=annees*365.25;
+  if(jours<70) return Math.round(jours/7)+" semaines";
+  if(jours<700) return Math.round(jours/30.44)+" mois";
+  return (Math.round(annees*10)/10).toLocaleString("fr-FR")+" ans";
+}
+function dateISO(label){ const [y,m,j]=label.split("-").map(Number); return new Date(Date.UTC(y,m-1,j)); }
 function borner(v,min,max){ v=Number.isFinite(v)?v:0; return Math.min(max,Math.max(min,v)); }
 function parseMontant(v){ const d=String(v).replace(/[^0-9]/g,""); return d?Number(d):0; }
-function lireEtat(){
-  const f=FONDS[Number(selFonds.value)||0];
-  const {r,annees,du,au}=rendementAnnualise(f);
+function grouperMilliers(input){
+  input.addEventListener("input",()=>{
+    const avant=input.value, pos=input.selectionStart==null?avant.length:input.selectionStart;
+    const chiffresAvantCurseur=(avant.slice(0,pos).match(/[0-9]/g)||[]).length;
+    let d=avant.replace(/[^0-9]/g,"").replace(/^0+(?=[0-9])/,"");
+    const fmt=d?d.replace(/\B(?=([0-9]{3})+(?![0-9]))/g," "):"";
+    if(input.value!==fmt) input.value=fmt;
+    let vus=0,i=0;
+    while(i<fmt.length&&vus<chiffresAvantCurseur){ if(/[0-9]/.test(fmt[i])) vus++; i++; }
+    try{ input.setSelectionRange(i,i); }catch(e){}
+  });
+  input.dispatchEvent(new Event("input",{bubbles:false}));
+}
+
+/* ————————————————— Moteur ————————————————— */
+function rendementAnnualise(fonds){
+  const d0=dateISO(fonds.labels[0]), d1=dateISO(fonds.labels[fonds.labels.length-1]);
+  const annees=(d1-d0)/86400000/365.25;
+  const r=Math.pow(fonds.vl[fonds.vl.length-1]/fonds.vl[0], 1/annees)-1;
+  return {r, annees, du:fonds.labels[0], au:fonds.labels[fonds.labels.length-1]};
+}
+
+function simulerEpargne(r, initial, versement, freq, annees, entreePct, sortiePct){
+  const M=Math.round(annees*12), im=Math.pow(1+r,1/12)-1, e=entreePct/100;
+  const cap=[initial*(1-e)], dep=[initial];
+  for(let t=1;t<=M;t++){
+    const d=(versement>0 && (t-1)%freq===0)?versement:0;
+    cap.push((cap[cap.length-1]+d*(1-e))*(1+im));
+    dep.push(dep[dep.length-1]+d);
+  }
+  const brut=cap[M], net=brut*(1-sortiePct/100);
+  return {cap, dep, totalVerse:dep[M], brut, net, fraisEntree:dep[M]*e};
+}
+
+const CAP_MOIS_RENTE=1212;   /* garde-fou : ~101 ans de service */
+const MOIS_AFFICHAGE_AVIE=360;
+function simulerRente(r, capital, opts){
+  const im=Math.pow(1+r,1/12)-1;
+  const e=(opts.entreePct||0)/100, s=(opts.sortiePct||0)/100;
+  let K=capital*(1-e);
+  const investi=K;
+  let W;
+  if(opts.dureeAnnees){
+    const n=Math.round(opts.dureeAnnees*12);
+    W = im>1e-12 ? K*im/((1-Math.pow(1+im,-n))*(1+im)) : K/n;
+  } else {
+    W=(opts.renteNette||0)/(1-s);
+  }
+  let aVie = !opts.dureeAnnees && W<=K*im/(1+im)*(1+1e-12);
+  const points=[{cap:K,percu:0}];
+  let percu=0, m=0, dernierRetrait=W;
+  const capMois=aVie?MOIS_AFFICHAGE_AVIE:CAP_MOIS_RENTE;
+  while(m<capMois){
+    m++;
+    const retrait=aVie?W:Math.min(W,K);
+    const partiel=retrait<W-1e-6;
+    K=(K-retrait)*(1+im);
+    percu+=retrait*(1-s);
+    points.push({cap:Math.max(K,0),percu});
+    dernierRetrait=retrait;
+    if(!aVie && (partiel || K<=0.005)) break;
+  }
+  if(!aVie && m>=CAP_MOIS_RENTE) aVie=true;   /* pratiquement inépuisable */
   return {
-    fonds:f, r, du, au, annees_obs:annees,
-    initial:borner(parseMontant($("initial").value),0,1e12),
-    versement:borner(parseMontant($("versement").value),0,1e10),
-    freq:Number(document.querySelector("input[name=freq]:checked").value),
-    annees:borner(parseInt($("duree").value,10),1,30),
-    entree:borner(parseFloat($("entree").value),0,10),
-    sortie:borner(parseFloat($("sortie").value),0,10)
+    points, investi,
+    retraitBrut:W, renteNette:W*(1-s),
+    aVie, dureeMois:aVie?null:m,
+    totalPercu:aVie?null:percu,
+    capFinAVie:aVie?points[points.length-1].cap:0
   };
 }
 
-/* ————————————————————————— Fiche du fonds ————————————————————————— */
+function simulerPlan(r, ageA, ageR, initial, mensuel, optsRente, entreePct, sortiePct){
+  const anneesEpargne=ageR-ageA;
+  const p1=simulerEpargne(r, initial, mensuel, 1, anneesEpargne, entreePct, 0);
+  const M1=anneesEpargne*12;
+  const capRetraite=p1.cap[M1];
+  const p2=simulerRente(r, capRetraite, {renteNette:optsRente.renteNette, dureeAnnees:optsRente.dureeAnnees, entreePct:0, sortiePct:sortiePct});
+  const points=[];
+  for(let t=0;t<=M1;t++) points.push({verse:p1.dep[t], cap:p1.cap[t], percu:0});
+  for(let u=1;u<p2.points.length;u++) points.push({verse:p1.dep[M1], cap:p2.points[u].cap, percu:p2.points[u].percu});
+  return {
+    points, moisRetraite:M1, capRetraite,
+    totalVerse:p1.dep[M1], fraisEntree:p1.fraisEntree,
+    rente:p2, ageA, ageR,
+    ageFin:p2.aVie?null:ageR+(p2.dureeMois/12)
+  };
+}
+
+/* ————————————————— Lecture du formulaire libre ————————————————— */
+const selFonds=$("fonds");
+FONDS.forEach((f,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=f.nom; selFonds.appendChild(o); });
+
+function scenarioActif(){ return document.querySelector("input[name=scenario]:checked").value; }
+function lireEtat(){
+  const f=FONDS[Number(selFonds.value)||0];
+  const {r,annees,du,au}=rendementAnnualise(f);
+  const etat={
+    fonds:f, r, du, au, annees_obs:annees,
+    scenario:scenarioActif(),
+    entree:borner(parseFloat($("entree").value),0,10),
+    sortie:borner(parseFloat($("sortie").value),0,10),
+    erreur:null
+  };
+  if(etat.scenario==="epargne"){
+    etat.initial=borner(parseMontant($("initial").value),0,1e12);
+    etat.versement=borner(parseMontant($("versement").value),0,1e10);
+    etat.freq=Number(document.querySelector("input[name=freq]:checked").value);
+    etat.annees=borner(parseInt($("duree").value,10),1,30);
+    if(etat.initial<=0&&etat.versement<=0) etat.erreur="vide";
+  } else if(etat.scenario==="rente"){
+    etat.capital=borner(parseMontant($("r-capital").value),0,1e13);
+    etat.modeRente=document.querySelector("input[name=r-mode]:checked").value;
+    etat.renteNette=borner(parseMontant($("r-rente").value),0,1e10);
+    etat.dureeRente=borner(parseInt($("r-duree").value,10),1,50);
+    if(etat.capital<=0) etat.erreur="vide";
+    else if(etat.modeRente==="montant"&&etat.renteNette<=0) etat.erreur="Indiquez le montant de rente souhaité.";
+  } else {
+    etat.ageA=borner(parseInt($("p-age").value,10),16,90);
+    etat.ageR=borner(parseInt($("p-age-retraite").value,10),16,95);
+    etat.initial=borner(parseMontant($("p-initial").value),0,1e12);
+    etat.mensuel=borner(parseMontant($("p-mensuel").value),0,1e10);
+    etat.modeRente=document.querySelector("input[name=p-mode]:checked").value;
+    etat.renteNette=borner(parseMontant($("p-rente").value),0,1e10);
+    etat.dureeRente=borner(parseInt($("p-duree").value,10),1,50);
+    if(etat.ageR<=etat.ageA) etat.erreur="L’âge de retraite doit être supérieur à l’âge actuel.";
+    else if(etat.initial<=0&&etat.mensuel<=0) etat.erreur="vide";
+    else if(etat.modeRente==="montant"&&etat.renteNette<=0) etat.erreur="Indiquez le montant de rente souhaité.";
+  }
+  return etat;
+}
+
+function calculer(etat){
+  if(etat.erreur) return null;
+  if(etat.scenario==="epargne"){
+    const s=simulerEpargne(etat.r,etat.initial,etat.versement,etat.freq,etat.annees,etat.entree,etat.sortie);
+    return {points:s.cap.map((c,t)=>({verse:s.dep[t],cap:c,percu:0})), brutFinal:s.brut, net:s.net,
+            totalVerse:s.totalVerse, fraisEntree:s.fraisEntree, xMode:"annees"};
+  }
+  if(etat.scenario==="rente"){
+    const rr=simulerRente(etat.r,etat.capital,{
+      renteNette:etat.modeRente==="montant"?etat.renteNette:null,
+      dureeAnnees:etat.modeRente==="duree"?etat.dureeRente:null,
+      entreePct:etat.entree, sortiePct:etat.sortie});
+    return {points:rr.points.map(p=>({verse:etat.capital,cap:p.cap,percu:p.percu})), rente:rr, xMode:"annees"};
+  }
+  const pl=simulerPlan(etat.r,etat.ageA,etat.ageR,etat.initial,etat.mensuel,{
+      renteNette:etat.modeRente==="montant"?etat.renteNette:null,
+      dureeAnnees:etat.modeRente==="duree"?etat.dureeRente:null},
+      etat.entree,etat.sortie);
+  return {points:pl.points, plan:pl, rente:pl.rente, xMode:"age", moisRetraite:pl.moisRetraite};
+}
+
+/* ————————————————— Palette ————————————————— */
+const PALETTE_CLAIRE={capital:"#0E9F6E",verse:"#C98500",percu:"#2A78D6",grid:"#EAE4D6",baseline:"#C9C2B0",muted:"#75816F",ink:"#1C2B22",ink2:"#4E5D52",card:"#FFFEFA"};
+function couleurs(){
+  const cs=getComputedStyle(document.documentElement);
+  const p=n=>cs.getPropertyValue(n).trim();
+  return {capital:p("--serie-capital"),verse:p("--serie-verse"),percu:p("--serie-percu"),
+          grid:p("--grid"),baseline:p("--baseline"),muted:p("--muted"),ink:p("--ink"),ink2:p("--ink-2"),card:p("--card")};
+}
+function seriesActives(etat){
+  if(etat.scenario==="epargne") return [
+    {cle:"verse",nom:"Total versé",coul:"verse"},
+    {cle:"cap",nom:"Capital",coul:"capital"}];
+  if(etat.scenario==="rente") return [
+    {cle:"cap",nom:"Capital restant",coul:"capital"},
+    {cle:"percu",nom:"Total perçu",coul:"percu"}];
+  return [
+    {cle:"verse",nom:"Total versé",coul:"verse"},
+    {cle:"cap",nom:"Capital",coul:"capital"},
+    {cle:"percu",nom:"Total perçu",coul:"percu"}];
+}
+
+/* ————————————————— Fiche du fonds ————————————————— */
 function ligneSVG(valeurs,w,h){
   const min=Math.min(...valeurs),max=Math.max(...valeurs);
   const x=i=>1.5+(w-3)*i/(valeurs.length-1);
   const y=v=>h-2-(h-4)*((v-min)/((max-min)||1));
-  return valeurs.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ");
+  let d="";
+  const pas=Math.max(1,Math.floor(valeurs.length/300));
+  for(let i=0;i<valeurs.length;i+=pas) d+=(d?"L":"M")+x(i).toFixed(1)+" "+y(valeurs[i]).toFixed(1);
+  return d;
 }
 function majFiche(etat){
   const f=etat.fonds, el=$("fiche-fonds");
@@ -349,24 +732,26 @@ function majFiche(etat){
   const rdt=document.createElement("div"); rdt.className="rdt";
   rdt.textContent="Rendement annualisé observé";
   const rdtVal=document.createElement("div"); rdtVal.className="rdt-val";
-  rdtVal.textContent=fmtPct.format(etat.r*100)+"\u00a0% par an";
+  rdtVal.textContent=fmtPct.format(etat.r*100)+" % par an";
   const per=document.createElement("div"); per.className="periode";
-  per.textContent="VL "+fmtEntier.format(f.vl[0])+" → "+fmtEntier.format(f.vl[f.vl.length-1])+" · "+libDate(f.labels[0])+" – "+libDate(f.labels[f.labels.length-1])+" ("+f.vl.length+" VL)";
+  per.textContent="VL "+fmtEntier.format(f.vl[0])+" → "+fmtEntier.format(f.vl[f.vl.length-1])+" · "+libDate(f.labels[0])+" – "+libDate(f.labels[f.labels.length-1])+" ("+f.vl.length+" VL)";
+  const vol=document.createElement("div"); vol.className="periode";
+  vol.textContent="Variations quotidiennes observées jusqu’à ±"+fmtPct.format(f.pireVarJour*100)+" %";
   const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
   svg.setAttribute("width","150");svg.setAttribute("height","34");svg.setAttribute("aria-hidden","true");
   const p=document.createElementNS("http://www.w3.org/2000/svg","path");
   p.setAttribute("d",ligneSVG(f.vl,150,34));p.setAttribute("fill","none");
   p.setAttribute("stroke","currentColor");p.setAttribute("stroke-width","1.5");
   svg.appendChild(p);
-  el.append(rdt,rdtVal,per,svg);
+  el.append(rdt,rdtVal,per,vol,svg);
   if(etat.annees_obs<1){
     const nb=document.createElement("div"); nb.className="periode";
-    nb.textContent="Historique court ("+libDuree(etat.annees_obs)+") : rendement annualisé à considérer avec prudence.";
+    nb.textContent="Historique court ("+libDureeAnnees(etat.annees_obs)+") : rendement annualisé à considérer avec prudence.";
     el.appendChild(nb);
   }
 }
 
-/* ————————————————————————— Tuiles ————————————————————————— */
+/* ————————————————— Tuiles ————————————————— */
 function tuile(lib,val,sous,classe){
   const t=document.createElement("div");t.className="tuile";
   const l=document.createElement("div");l.className="lib";l.textContent=lib;
@@ -377,21 +762,50 @@ function tuile(lib,val,sous,classe){
 }
 function majTuiles(etat,res){
   const c=$("tuiles"); c.replaceChildren();
-  if(res.totalVerse<=0){ return; }
-  const gain=res.net-res.totalVerse, pct=gain/res.totalVerse;
+  if(!res) return;
+  if(etat.scenario==="epargne"){
+    const gain=res.net-res.totalVerse, pct=res.totalVerse>0?gain/res.totalVerse:0;
+    c.append(
+      tuile("Total versé",F(res.totalVerse), res.fraisEntree>0?("dont droits d’entrée : "+F(res.fraisEntree)):("sur "+etat.annees+" ans")),
+      tuile("Valeur au terme",F(res.net), etat.sortie>0?"nette de droits de sortie":("au bout de "+etat.annees+" ans")),
+      tuile("Gain net",(gain>=0?"+":"−")+F(Math.abs(gain)), "soit "+fmtPct.format(Math.abs(pct)*100)+" % du total versé", gain>=0?"pos":"neg"),
+      tuile("Rendement appliqué",fmtPct.format(etat.r*100)+" %", "VL du "+libDate(etat.du)+" au "+libDate(etat.au))
+    );
+    return;
+  }
+  if(etat.scenario==="rente"){
+    const rr=res.rente;
+    c.append(
+      tuile("Capital placé",F(etat.capital), etat.entree>0?("net investi : "+F(rr.investi)):"investi en une fois"),
+      tuile("Rente mensuelle nette",F(rr.renteNette), etat.sortie>0?("retrait brut : "+F(rr.retraitBrut)):(etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi")),
+      rr.aVie
+        ? tuile("Servie pendant","À vie","le capital n’est jamais épuisé","pos")
+        : tuile("Servie pendant",libDureeMois(rr.dureeMois),"jusqu’à épuisement du capital"),
+      rr.aVie
+        ? tuile("Capital après 30 ans",F(rr.capFinAVie),"le capital continue de croître","pos")
+        : tuile("Total perçu",F(rr.totalPercu),"pour "+F(etat.capital)+" placés")
+    );
+    return;
+  }
+  const pl=res.plan, rr=pl.rente;
   c.append(
-    tuile("Total versé",F(res.totalVerse), res.fraisEntree>0?("dont droits d’entrée : "+F(res.fraisEntree)):"sur "+etat.annees+" ans"),
-    tuile("Valeur au terme",F(res.net), etat.sortie>0?"nette de droits de sortie":"au bout de "+etat.annees+" ans"),
-    tuile("Gain net",(gain>=0?"+":"−")+F(Math.abs(gain)), "soit "+fmtPct.format(Math.abs(pct)*100)+" % du total versé", gain>=0?"pos":"neg"),
-    tuile("Rendement appliqué",fmtPct.format(etat.r*100)+" %", "VL du "+libDate(etat.du)+" au "+libDate(etat.au))
+    tuile("Capital à la retraite",F(pl.capRetraite),"à "+etat.ageR+" ans, après "+(etat.ageR-etat.ageA)+" ans d’épargne"),
+    tuile("Rente mensuelle nette",F(rr.renteNette), etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi"),
+    rr.aVie
+      ? tuile("Servie","À vie","le capital n’est jamais épuisé","pos")
+      : tuile("Servie jusqu’à",Math.round(pl.ageFin)+" ans","soit "+libDureeMois(rr.dureeMois)+" de rente"),
+    rr.aVie
+      ? tuile("Total versé",F(pl.totalVerse),"rente servie sans épuisement","pos")
+      : tuile("Total perçu",F(rr.totalPercu),"pour "+F(pl.totalVerse)+" versés")
   );
 }
 
-/* ————————————————————————— Graphique ————————————————————————— */
+/* ————————————————— Graphique ————————————————— */
 const SVG_NS="http://www.w3.org/2000/svg";
 function el(name,attrs,parent){
   const n=document.createElementNS(SVG_NS,name);
   for(const k in attrs) n.setAttribute(k,attrs[k]);
+  if(name==="text") n.setAttribute("font-family","system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif");
   if(parent) parent.appendChild(n);
   return n;
 }
@@ -402,130 +816,125 @@ function pasArrondi(brut){
 }
 const graphe={ etat:null, res:null, idx:-1, largeur:0 };
 
-function couleurs(){
-  const cs=getComputedStyle(document.documentElement);
-  return {
-    capital:cs.getPropertyValue("--serie-capital").trim(),
-    verse:cs.getPropertyValue("--serie-verse").trim(),
-    grid:cs.getPropertyValue("--grid").trim(),
-    baseline:cs.getPropertyValue("--baseline").trim(),
-    muted:cs.getPropertyValue("--muted").trim(),
-    ink:cs.getPropertyValue("--ink").trim(),
-    ink2:cs.getPropertyValue("--ink-2").trim(),
-    card:cs.getPropertyValue("--card").trim()
-  };
-}
-
-function dessinerGraphe(){
-  const svg=$("graphe"), zone=$("zone-graphe");
-  const etat=graphe.etat, res=graphe.res;
+function dessinerCourbes(svg, W, C, etat, res, interactif){
   svg.replaceChildren();
-  const W=graphe.largeur=Math.max(300,zone.clientWidth);
   const etroit=W<620;
-  const H=336, mg={haut:34, droite:etroit?18:118, bas:36, gauche:56};
+  const H=336, mg={haut:34, droite:etroit?18:128, bas:36, gauche:56};
   svg.setAttribute("viewBox","0 0 "+W+" "+H);
   svg.setAttribute("width",W);svg.setAttribute("height",H);
-
-  if(!res || res.totalVerse<=0){
-    const t=el("text",{x:W/2,y:H/2,"text-anchor":"middle",fill:couleurs().muted,"font-size":"14"},svg);
-    t.textContent="Saisissez une mise de départ ou un versement pour lancer la simulation.";
-    return;
+  if(!res){
+    const t=el("text",{x:W/2,y:H/2,"text-anchor":"middle",fill:C.muted,"font-size":"14"},svg);
+    t.textContent=(etat&&etat.erreur&&etat.erreur!=="vide")?etat.erreur:"Renseignez votre plan pour lancer la simulation.";
+    return null;
   }
-  const C=couleurs();
-  const M=etat.annees*12;
-  const maxY=Math.max(res.cap[M],res.dep[M],...res.cap)*1.04;
+  const series=seriesActives(etat);
+  const pts=res.points, M=pts.length-1;
+  let maxY=0;
+  for(const p of pts) maxY=Math.max(maxY,p.verse||0,p.cap||0,p.percu||0);
+  maxY*=1.04;
   const pas=pasArrondi(maxY/4);
-  const yMax=Math.ceil(maxY/pas)*pas;
+  const yMax=Math.max(pas,Math.ceil(maxY/pas)*pas);
   const X=t=>mg.gauche+(W-mg.gauche-mg.droite)*t/M;
   const Y=v=>H-mg.bas-(H-mg.haut-mg.bas)*v/yMax;
 
-  /* grille horizontale + graduations Y */
   for(let v=0;v<=yMax+1;v+=pas){
     el("line",{x1:mg.gauche,x2:W-mg.droite,y1:Y(v),y2:Y(v),stroke:v===0?C.baseline:C.grid,"stroke-width":1},svg);
-    const t=el("text",{x:mg.gauche-8,y:Y(v)+4,"text-anchor":"end",fill:C.muted,"font-size":"11","font-variant-numeric":"tabular-nums"},svg);
-    t.textContent=Fcourt(v);
+    const t=el("text",{x:mg.gauche-8,y:Y(v)+4,"text-anchor":"end",fill:C.muted,"font-size":"11"},svg);
+    t.textContent=Fcourt(v).replace(/ /g," ");
   }
-  const unite=el("text",{x:mg.gauche-8,y:15,"text-anchor":"end",fill:C.muted,"font-size":"10.5"},svg);
-  unite.textContent="F CFA";
+  el("text",{x:mg.gauche-8,y:15,"text-anchor":"end",fill:C.muted,"font-size":"10.5"},svg).textContent="F CFA";
 
-  /* graduations X (années) */
-  const pasAn=etat.annees<=8?1:(etat.annees<=16?2:5);
-  for(let a=0;a<=etat.annees;a+=pasAn){
+  /* axe X : années ou âge */
+  const enAge=res.xMode==="age";
+  const anneesTot=M/12;
+  const pasAn=anneesTot<=8?1:(anneesTot<=16?2:(anneesTot<=40?5:10));
+  for(let a=0;a<=Math.floor(anneesTot+1e-9);a+=pasAn){
     const x=X(a*12);
     el("line",{x1:x,x2:x,y1:H-mg.bas,y2:H-mg.bas+4,stroke:C.baseline,"stroke-width":1},svg);
     const t=el("text",{x:x,y:H-mg.bas+17,"text-anchor":"middle",fill:C.muted,"font-size":"11"},svg);
-    t.textContent=a===0?"Départ":String(a);
+    t.textContent=enAge?String(etat.ageA+a):(a===0?"Départ":String(a));
   }
-  const axeX=el("text",{x:W-mg.droite,y:H-mg.bas+31,"text-anchor":"end",fill:C.muted,"font-size":"10.5"},svg);
-  axeX.textContent="Années";
+  el("text",{x:W-mg.droite,y:H-mg.bas+31,"text-anchor":"end",fill:C.muted,"font-size":"10.5"},svg).textContent=enAge?"Âge":"Années";
 
-  /* séries */
-  const chemin=serie=>serie.map((v,t)=>(t?"L":"M")+X(t).toFixed(2)+" "+Y(v).toFixed(2)).join(" ");
-  el("path",{d:chemin(res.cap)+" L"+X(M).toFixed(2)+" "+Y(0)+" L"+X(0)+" "+Y(0)+" Z",fill:C.capital,opacity:"0.10",stroke:"none"},svg);
-  el("path",{d:chemin(res.dep),fill:"none",stroke:C.verse,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
-  el("path",{d:chemin(res.cap),fill:"none",stroke:C.capital,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
-
-  /* points terminaux : anneau de surface + pastille */
-  for(const [serie,coul] of [[res.dep,C.verse],[res.cap,C.capital]]){
-    el("circle",{cx:X(M),cy:Y(serie[M]),r:6.5,fill:C.card},svg);
-    el("circle",{cx:X(M),cy:Y(serie[M]),r:4.5,fill:coul},svg);
+  /* repère retraite */
+  if(res.moisRetraite){
+    const xr=X(res.moisRetraite);
+    el("line",{x1:xr,x2:xr,y1:mg.haut,y2:H-mg.bas,stroke:C.baseline,"stroke-width":1},svg);
+    const t=el("text",{x:xr,y:mg.haut-6,"text-anchor":"middle",fill:C.muted,"font-size":"10.5"},svg);
+    t.textContent="Retraite";
   }
 
-  /* étiquettes de fin (sélectives) — écartées si trop proches */
+  const chemin=cle=>{
+    let d="";
+    const saut=Math.max(1,Math.floor(M/1200));
+    for(let t=0;t<=M;t++){ if(t%saut!==0&&t!==M) continue; d+=(d?"L":"M")+X(t).toFixed(2)+" "+Y(pts[t][cle]||0).toFixed(2); }
+    return d;
+  };
+  el("path",{d:chemin("cap")+" L"+X(M).toFixed(2)+" "+Y(0)+" L"+X(0)+" "+Y(0)+" Z",fill:C.capital,opacity:"0.10",stroke:"none"},svg);
+  for(const s of series){ if(s.cle==="cap") continue;
+    el("path",{d:chemin(s.cle),fill:"none",stroke:C[s.coul],"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
+  }
+  el("path",{d:chemin("cap"),fill:"none",stroke:C.capital,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
+
+  for(const s of series){
+    el("circle",{cx:X(M),cy:Y(pts[M][s.cle]||0),r:6.5,fill:C.card},svg);
+    el("circle",{cx:X(M),cy:Y(pts[M][s.cle]||0),r:4.5,fill:C[s.coul]},svg);
+  }
+
+  /* étiquettes de fin, écartées si collision */
   if(!etroit){
-    let yCap=Y(res.cap[M]), yDep=Y(res.dep[M]);
-    const capDessus=res.cap[M]>=res.dep[M];
-    if(Math.abs(yCap-yDep)<34){ if(capDessus){yCap-=(34-Math.abs(yCap-yDep))/2;yDep+=(34-Math.abs(Y(res.cap[M])-Y(res.dep[M])))/2;} else {yCap+=17;yDep-=17;} }
-    const etiq=(y,valeur,nom)=>{
-      const g=el("g",{},svg);
-      const v=el("text",{x:X(M)+12,y:y-2,fill:C.ink,"font-size":"12.5","font-weight":"600"},g);
-      v.textContent=Fcourt(valeur);
-      const n=el("text",{x:X(M)+12,y:y+12,fill:C.ink2,"font-size":"10.5"},g);
-      n.textContent=nom;
-    };
-    etiq(yCap,res.cap[M],"Capital");
-    etiq(yDep,res.dep[M],"Total versé");
+    const etiqs=series.map(s=>({y:Y(pts[M][s.cle]||0), val:pts[M][s.cle]||0, nom:s.nom})).sort((a,b)=>a.y-b.y);
+    for(let i=1;i<etiqs.length;i++) if(etiqs[i].y-etiqs[i-1].y<32) etiqs[i].y=etiqs[i-1].y+32;
+    for(const q of etiqs){
+      el("text",{x:X(M)+12,y:q.y-2,fill:C.ink,"font-size":"12.5","font-weight":"600"},svg).textContent=Fcourt(q.val).replace(/ /g," ");
+      el("text",{x:X(M)+12,y:q.y+12,fill:C.ink2,"font-size":"10.5"},svg).textContent=q.nom;
+    }
   }
 
-  /* couche de survol : ligne-repère + points + zone de capture */
-  const gSurvol=el("g",{style:"display:none"},svg);
-  el("line",{x1:0,x2:0,y1:mg.haut,y2:H-mg.bas,stroke:C.baseline,"stroke-width":1,id:"repere-x"},gSurvol);
-  el("circle",{r:5.5,fill:C.card,id:"pt-dep-ring"},gSurvol);
-  el("circle",{r:3.8,fill:C.verse,id:"pt-dep"},gSurvol);
-  el("circle",{r:5.5,fill:C.card,id:"pt-cap-ring"},gSurvol);
-  el("circle",{r:3.8,fill:C.capital,id:"pt-cap"},gSurvol);
-  const capture=el("rect",{x:mg.gauche,y:mg.haut,width:W-mg.gauche-mg.droite,height:H-mg.haut-mg.bas,fill:"transparent"},svg);
+  if(!interactif) return null;
 
+  /* couche de survol */
+  const gSurvol=el("g",{style:"display:none"},svg);
+  el("line",{x1:0,x2:0,y1:mg.haut,y2:H-mg.bas,stroke:C.baseline,"stroke-width":1,"data-role":"repere"},gSurvol);
+  for(const s of series){
+    el("circle",{r:5.5,fill:C.card,"data-ring":s.cle},gSurvol);
+    el("circle",{r:3.8,fill:C[s.coul],"data-pt":s.cle},gSurvol);
+  }
+  const capture=el("rect",{x:mg.gauche,y:mg.haut,width:W-mg.gauche-mg.droite,height:H-mg.haut-mg.bas,fill:"transparent"},svg);
   const survol=t=>{
-    t=Math.min(M,Math.max(0,t));
-    graphe.idx=t;
+    t=Math.min(M,Math.max(0,t)); graphe.idx=t;
     gSurvol.style.display="";
     const x=X(t);
-    const l=gSurvol.querySelector("#repere-x"); l.setAttribute("x1",x);l.setAttribute("x2",x);
-    for(const [id,serie] of [["dep",res.dep],["cap",res.cap]]){
-      gSurvol.querySelector("#pt-"+id+"-ring").setAttribute("cx",x);
-      gSurvol.querySelector("#pt-"+id+"-ring").setAttribute("cy",Y(serie[t]));
-      gSurvol.querySelector("#pt-"+id).setAttribute("cx",x);
-      gSurvol.querySelector("#pt-"+id).setAttribute("cy",Y(serie[t]));
+    const l=gSurvol.querySelector("[data-role=repere]"); l.setAttribute("x1",x);l.setAttribute("x2",x);
+    for(const s of series){
+      gSurvol.querySelector("[data-ring="+s.cle+"]").setAttribute("cx",x);
+      gSurvol.querySelector("[data-ring="+s.cle+"]").setAttribute("cy",Y(pts[t][s.cle]||0));
+      gSurvol.querySelector("[data-pt="+s.cle+"]").setAttribute("cx",x);
+      gSurvol.querySelector("[data-pt="+s.cle+"]").setAttribute("cy",Y(pts[t][s.cle]||0));
     }
-    montrerInfobulle(t,x,Y(Math.max(res.cap[t],res.dep[t])));
+    montrerInfobulle(t,x,Y(Math.max(...series.map(s=>pts[t][s.cle]||0))));
   };
   const cacher=()=>{ gSurvol.style.display="none"; $("infobulle").style.display="none"; graphe.idx=-1; };
-
   capture.addEventListener("pointermove",ev=>{
     const r=svg.getBoundingClientRect();
     const px=(ev.clientX-r.left)*(W/r.width);
     survol(Math.round((px-mg.gauche)/((W-mg.gauche-mg.droite)/M)));
   });
   capture.addEventListener("pointerleave",cacher);
-  svg.addEventListener("keydown",ev=>{
+  svg.onkeydown=ev=>{
     if(ev.key==="ArrowRight"||ev.key==="ArrowLeft"){
       ev.preventDefault();
-      const t=graphe.idx<0?M:graphe.idx+(ev.key==="ArrowRight"?1:-1);
-      survol(t);
+      survol(graphe.idx<0?M:graphe.idx+(ev.key==="ArrowRight"?1:-1));
     } else if(ev.key==="Escape"){ cacher(); }
-  });
-  svg.addEventListener("blur",cacher);
+  };
+  svg.onblur=cacher;
+  return null;
+}
+
+function dessinerGraphe(){
+  const svg=$("graphe"), zone=$("zone-graphe");
+  const W=graphe.largeur=Math.max(300,zone.clientWidth);
+  dessinerCourbes(svg,W,couleurs(),graphe.etat,graphe.res,true);
 }
 
 function montrerInfobulle(t,xSvg,ySvg){
@@ -533,15 +942,19 @@ function montrerInfobulle(t,xSvg,ySvg){
   const etat=graphe.etat,res=graphe.res;
   bulle.replaceChildren();
   const quand=document.createElement("div");quand.className="quand";
-  const ans=Math.floor(t/12),mois=t%12;
-  quand.textContent=t===0?"Au départ":("Après "+(ans>0?ans+" an"+(ans>1?"s":""):"")+(ans>0&&mois>0?" et ":"")+(mois>0?mois+" mois":""));
+  if(res.xMode==="age"){
+    quand.textContent=t===0?("À "+etat.ageA+" ans"):("À "+Math.floor(etat.ageA+t/12)+" ans"+(t%12?" et "+(t%12)+" mois":""));
+  } else {
+    const ans=Math.floor(t/12),mois=t%12;
+    quand.textContent=t===0?"Au départ":("Après "+(ans>0?ans+" an"+(ans>1?"s":""):"")+(ans>0&&mois>0?" et ":"")+(mois>0?mois+" mois":""));
+  }
   bulle.appendChild(quand);
   const C=couleurs();
-  for(const [serie,coul,nom] of [[res.cap,C.capital,"Capital"],[res.dep,C.verse,"Total versé"]]){
+  for(const s of seriesActives(etat)){
     const r=document.createElement("div");r.className="rangee";
-    const k=document.createElement("span");k.className="cle-trait";k.style.borderColor=coul;
-    const v=document.createElement("span");v.className="valeur";v.textContent=F(serie[t]);
-    const q=document.createElement("span");q.className="qui";q.textContent=nom;
+    const k=document.createElement("span");k.className="cle-trait";k.style.borderColor=C[s.coul];
+    const v=document.createElement("span");v.className="valeur";v.textContent=F(res.points[t][s.cle]||0);
+    const q=document.createElement("span");q.className="qui";q.textContent=s.nom;
     r.append(k,v,q);bulle.appendChild(r);
   }
   const rect=svg.getBoundingClientRect(), zr=zone.getBoundingClientRect();
@@ -554,67 +967,90 @@ function montrerInfobulle(t,xSvg,ySvg){
   bulle.style.top=Math.max(0,(rect.top-zr.top)+ySvg*echelle-14)+"px";
 }
 
-/* ————————————————————————— Tableau ————————————————————————— */
-function majTableau(etat,res){
-  const corps=$("tableau").querySelector("tbody");
-  corps.replaceChildren();
-  if(res.totalVerse<=0) return;
-  for(let a=1;a<=etat.annees;a++){
-    const t=a*12, tr=document.createElement("tr");
-    const gain=res.cap[t]-res.dep[t];
-    const c1=document.createElement("td");c1.textContent=String(a);
-    const c2=document.createElement("td");c2.textContent=F(res.dep[t]);
-    const c3=document.createElement("td");c3.textContent=F(res.cap[t]);
-    const c4=document.createElement("td");c4.className=gain>=0?"gain":"perte";
-    c4.textContent=(gain>=0?"+":"−")+F(Math.abs(gain));
-    tr.append(c1,c2,c3,c4);corps.appendChild(tr);
+function majLegende(etat){
+  const lg=$("legende"); lg.replaceChildren();
+  const C=couleurs();
+  for(const s of seriesActives(etat)){
+    const cle=document.createElement("span");cle.className="cle";
+    const tr=document.createElement("span");tr.className="trait";tr.style.borderColor=C[s.coul];
+    cle.append(tr,document.createTextNode(s.nom));
+    lg.appendChild(cle);
   }
 }
 
-/* ————————————————————————— Orchestration ————————————————————————— */
+/* ————————————————— Tableau ————————————————— */
+function colonnesTableau(etat){
+  if(etat.scenario==="epargne") return ["Année","Total versé","Capital","Gain latent"];
+  if(etat.scenario==="rente") return ["Année","Capital restant","Perçu cumulé"];
+  return ["Âge","Total versé","Capital","Perçu cumulé"];
+}
+function lignesTableau(etat,res){
+  const lignes=[], pts=res.points, M=pts.length-1;
+  const nA=Math.ceil(M/12);
+  for(let a=1;a<=nA;a++){
+    const t=Math.min(a*12,M), p=pts[t];
+    if(etat.scenario==="epargne"){
+      const gain=p.cap-p.verse;
+      lignes.push({cells:[String(a),F(p.verse),F(p.cap),(gain>=0?"+":"−")+F(Math.abs(gain))], classes:[null,null,null,gain>=0?"gain":"perte"]});
+    } else if(etat.scenario==="rente"){
+      lignes.push({cells:[String(a),F(p.cap),F(p.percu)],classes:[null,null,null]});
+    } else {
+      lignes.push({cells:[String(etat.ageA+a),F(p.verse),F(p.cap),F(p.percu)],classes:[null,null,null,null]});
+    }
+  }
+  return lignes;
+}
+function majTableau(etat,res){
+  const thead=$("tableau").querySelector("thead"), corps=$("tableau").querySelector("tbody");
+  thead.replaceChildren(); corps.replaceChildren();
+  if(!res) return;
+  const tr=document.createElement("tr");
+  for(const c of colonnesTableau(etat)){ const th=document.createElement("th"); th.scope="col"; th.textContent=c; tr.appendChild(th); }
+  thead.appendChild(tr);
+  for(const l of lignesTableau(etat,res)){
+    const trl=document.createElement("tr");
+    l.cells.forEach((v,i)=>{ const td=document.createElement("td"); td.textContent=v; if(l.classes[i]) td.className=l.classes[i]; trl.appendChild(td); });
+    corps.appendChild(trl);
+  }
+}
+
+/* ————————————————— Orchestration du simulateur ————————————————— */
 function recalculer(){
   const etat=lireEtat();
-  $("duree-affichee").value=etat.annees+" an"+(etat.annees>1?"s":"");
-  const res=simuler(etat.r,etat.initial,etat.versement,etat.freq,etat.annees,etat.entree,etat.sortie);
-  graphe.etat=etat;graphe.res=res;
+  $("duree-affichee").value=$("duree").value+" an"+(Number($("duree").value)>1?"s":"");
+  const err=$("s-erreur");
+  if(etat.erreur&&etat.erreur!=="vide"){ err.textContent=etat.erreur; err.classList.add("visible"); }
+  else err.classList.remove("visible");
+  const res=calculer(etat);
+  graphe.etat=etat; graphe.res=res;
   majFiche(etat);
   majTuiles(etat,res);
-  const freqTxt={1:"versements mensuels",3:"versements trimestriels",12:"versements annuels"}[etat.freq];
-  $("sous-graphe").textContent="Montants en francs CFA · "+freqTxt+" · rendement "+fmtPct.format(etat.r*100)+" % par an issu des VL";
+  majLegende(etat);
+  const titres={epargne:"Évolution de votre épargne",rente:"Votre rente et votre capital",plan:"Votre plan retraite"};
+  $("titre-graphe").textContent=titres[etat.scenario];
+  $("sous-graphe").textContent="Montants en francs CFA · rendement "+fmtPct.format(etat.r*100)+" % par an issu des VL";
   dessinerGraphe();
   majTableau(etat,res);
 }
 
-/* séparateurs de milliers appliqués pendant la frappe, curseur préservé */
-function grouperMilliers(input){
-  input.addEventListener("input",()=>{
-    const avant=input.value, pos=input.selectionStart==null?avant.length:input.selectionStart;
-    const chiffresAvantCurseur=(avant.slice(0,pos).match(/[0-9]/g)||[]).length;
-    let d=avant.replace(/[^0-9]/g,"").replace(/^0+(?=[0-9])/,"");
-    const fmt=d?d.replace(/\B(?=([0-9]{3})+(?![0-9]))/g,"\u202f"):"";
-    if(input.value!==fmt) input.value=fmt;
-    let vus=0,i=0;
-    while(i<fmt.length&&vus<chiffresAvantCurseur){ if(/[0-9]/.test(fmt[i])) vus++; i++; }
-    try{ input.setSelectionRange(i,i); }catch(e){}
-  });
-  input.dispatchEvent(new Event("input",{bubbles:false}));
+function basculerScenario(){
+  const sc=scenarioActif();
+  $("champs-epargne").hidden=sc!=="epargne";
+  $("champs-rente").hidden=sc!=="rente";
+  $("champs-plan").hidden=sc!=="plan";
+  recalculer();
 }
-grouperMilliers($("initial"));
-grouperMilliers($("versement"));
-
-/* droits d'entrée/sortie prérenseignés depuis le fonds affiché */
-$("entree").value=FONDS[0].entree;
-$("sortie").value=FONDS[0].sortie;
-
-/* étiquette et mention : date de la dernière VL intégrée */
-(function(){
-  const toutes=FONDS.flatMap(f=>f.labels);
-  toutes.sort();
-  const derniere=toutes[toutes.length-1];
-  $("etiquette-vl").textContent="Version 1 · VL au "+libDate(derniere);
-  $("mention-source").textContent="Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds ; dernière VL intégrée : "+libDate(derniere)+".";
-})();
-
+document.querySelectorAll("input[name=scenario]").forEach(r=>r.addEventListener("change",basculerScenario));
+document.querySelectorAll("input[name=r-mode]").forEach(r=>r.addEventListener("change",()=>{
+  $("r-ligne-montant").hidden=document.querySelector("input[name=r-mode]:checked").value!=="montant";
+  $("r-ligne-duree").hidden=document.querySelector("input[name=r-mode]:checked").value!=="duree";
+  recalculer();
+}));
+document.querySelectorAll("input[name=p-mode]").forEach(r=>r.addEventListener("change",()=>{
+  $("p-ligne-montant").hidden=document.querySelector("input[name=p-mode]:checked").value!=="montant";
+  $("p-ligne-duree").hidden=document.querySelector("input[name=p-mode]:checked").value!=="duree";
+  recalculer();
+}));
 selFonds.addEventListener("change",()=>{
   const f=FONDS[Number(selFonds.value)||0];
   $("entree").value=f.entree; $("sortie").value=f.sortie;
@@ -622,12 +1058,318 @@ selFonds.addEventListener("change",()=>{
 });
 $("formulaire").addEventListener("input",recalculer);
 $("formulaire").addEventListener("submit",ev=>ev.preventDefault());
-new ResizeObserver(()=>{ if(graphe.res) dessinerGraphe(); }).observe($("zone-graphe"));
+["initial","versement","r-capital","r-rente","p-initial","p-mensuel","p-rente"].forEach(id=>grouperMilliers($(id)));
+$("entree").value=FONDS[0].entree; $("sortie").value=FONDS[0].sortie;
+new ResizeObserver(()=>{ if(graphe.etat&&document.querySelector("#vue-simulateur.active")) dessinerGraphe(); }).observe($("zone-graphe"));
 if(window.matchMedia){ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>recalculer()); }
-recalculer();
 
-/* Exposé pour vérification automatisée (sans effet pour l'utilisateur) */
-window.__moteur={rendementAnnualise,simuler,FONDS};
+/* ————————————————— Parcours guidé ————————————————— */
+function fondsCalme(){ return [...FONDS].sort((a,b)=>a.volAnnuelle-b.volAnnuelle)[0]; }
+function fondsDynamique(){ return [...FONDS].sort((a,b)=>b.volAnnuelle-a.volAnnuelle)[0]; }
+
+function majBlocsGuide(){
+  const obj=document.querySelector("input[name=g-objectif]:checked").value;
+  $("g-bloc-retraite").hidden=obj!=="retraite";
+  $("g-bloc-fructifier").hidden=obj!=="fructifier";
+  $("g-bloc-epargner").hidden=obj!=="epargner";
+  const revenu=document.querySelector("input[name=g-revenu]:checked").value;
+  $("g-ligne-horizon").hidden=!(obj==="fructifier"&&revenu==="non");
+  $("g-bloc-rente").hidden=!(obj==="retraite"||(obj==="fructifier"&&revenu==="oui"));
+  const mode=document.querySelector("input[name=g-mode-rente]:checked").value;
+  $("g-ligne-rente-montant").hidden=mode!=="montant";
+  $("g-ligne-rente-duree").hidden=mode!=="duree";
+}
+document.querySelectorAll("input[name=g-objectif],input[name=g-revenu],input[name=g-mode-rente]").forEach(r=>r.addEventListener("change",majBlocsGuide));
+["g-mensuel","g-capital","g-mensuel2","g-rente"].forEach(id=>grouperMilliers($(id)));
+
+function construireProposition(){
+  const obj=document.querySelector("input[name=g-objectif]:checked").value;
+  const pref=document.querySelector("input[name=g-pref]:checked").value;
+  const modeRente=document.querySelector("input[name=g-mode-rente]:checked").value;
+  const g={obj,pref,modeRente};
+  if(obj==="retraite"){
+    g.ageA=borner(parseInt($("g-age").value,10),16,90);
+    g.ageR=borner(parseInt($("g-age-retraite").value,10),16,95);
+    g.mensuel=parseMontant($("g-mensuel").value);
+    if(g.ageR<=g.ageA) return {erreur:"L’âge de retraite doit être supérieur à l’âge actuel."};
+    if(g.mensuel<=0) return {erreur:"Indiquez votre épargne mensuelle."};
+    g.horizon=g.ageR-g.ageA; g.scenario="plan"; g.renteImmediate=false;
+  } else if(obj==="fructifier"){
+    g.capital=parseMontant($("g-capital").value);
+    if(g.capital<=0) return {erreur:"Indiquez le montant disponible."};
+    const revenu=document.querySelector("input[name=g-revenu]:checked").value;
+    if(revenu==="oui"){ g.scenario="rente"; g.renteImmediate=true; g.horizon=0; }
+    else { g.scenario="epargne"; g.renteImmediate=false; g.horizon=borner(parseInt($("g-horizon").value,10),1,40); }
+  } else {
+    g.mensuel=parseMontant($("g-mensuel2").value);
+    if(g.mensuel<=0) return {erreur:"Indiquez votre épargne mensuelle."};
+    g.horizon=borner(parseInt($("g-duree").value,10),1,40);
+    g.scenario="epargne"; g.renteImmediate=false;
+  }
+  if(g.scenario==="plan"||g.scenario==="rente"){
+    if(modeRente==="montant"){ g.rente=parseMontant($("g-rente").value); if(g.rente<=0) return {erreur:"Indiquez la rente mensuelle souhaitée."}; }
+    else g.renteDuree=borner(parseInt($("g-rente-duree").value,10),1,50);
+  }
+  /* choix du fonds, règles transparentes */
+  const calme=fondsCalme(), dyn=fondsDynamique();
+  let fonds, raisonFonds;
+  if(g.renteImmediate){
+    fonds=calme;
+    raisonFonds="votre capital sert une rente dès maintenant : les retraits mensuels s’accommodent mal des à-coups, la régularité prime";
+  } else if(pref==="performance"&&g.horizon>=3){
+    fonds=dyn;
+    raisonFonds="votre horizon de "+g.horizon+" ans laisse le temps d’absorber les fluctuations que vous acceptez";
+  } else if(pref==="performance"){
+    fonds=calme;
+    raisonFonds="malgré votre goût pour la performance, un horizon de "+g.horizon+" an"+(g.horizon>1?"s":"")+" est court : la régularité protège votre capital";
+  } else {
+    fonds=calme;
+    raisonFonds="il présente les variations les plus contenues, en cohérence avec votre préférence pour la régularité";
+  }
+  g.fonds=fonds; g.raisonFonds=raisonFonds;
+  return g;
+}
+
+function afficherProposition(){
+  const zone=$("proposition-contenu");
+  const g=construireProposition();
+  const err=$("g-erreur");
+  if(g.erreur){ err.textContent=g.erreur; err.classList.add("visible"); return; }
+  err.classList.remove("visible");
+  zone.replaceChildren();
+  const {r}=rendementAnnualise(g.fonds);
+  const nomsScenario={epargne:"Épargne par capitalisation",rente:"Rente tirée du capital",plan:"Plan retraite : épargne puis rente"};
+  const h=document.createElement("h3"); h.textContent=g.fonds.nom;
+  const sc=document.createElement("p"); sc.className="scenario-nom"; sc.textContent="Scénario proposé — "+nomsScenario[g.scenario];
+  const ul=document.createElement("ul");
+  const li1=document.createElement("li");
+  li1.textContent=g.scenario==="plan"
+    ? ("Vous avez "+(g.ageR-g.ageA)+" ans devant vous avant la retraite : une phase d’épargne mensuelle, puis la rente.")
+    : (g.scenario==="rente" ? "Votre capital est disponible et doit produire un revenu régulier dès maintenant."
+       : ("Votre horizon d’épargne est de "+g.horizon+" an"+(g.horizon>1?"s":"")+"."));
+  const li2=document.createElement("li");
+  li2.textContent="Ce fonds a servi "+fmtPct.format(r*100)+" % par an sur "+libDureeAnnees(rendementAnnualise(g.fonds).annees)+" de VL observées, avec des variations quotidiennes restées dans ±"+fmtPct.format(g.fonds.pireVarJour*100)+" % — "+g.raisonFonds+".";
+  const li3=document.createElement("li");
+  li3.textContent="Droits appliqués : souscription "+fmtPct.format(g.fonds.entree)+" %, rachat "+fmtPct.format(g.fonds.sortie)+" %. Les frais de gestion sont déjà compris dans les VL.";
+  ul.append(li1,li2,li3);
+  const av=document.createElement("p"); av.className="avert";
+  av.textContent="Proposition établie à partir de vos seules réponses, à titre pédagogique. Elle ne constitue pas un conseil en investissement personnalisé ; les performances passées ne préjugent pas des performances futures.";
+  const actions=document.createElement("div"); actions.className="actions";
+  const btn=document.createElement("button"); btn.type="button"; btn.className="bouton";
+  btn.textContent="Lancer la simulation avec ces réglages";
+  btn.addEventListener("click",()=>appliquerProposition(g));
+  const autre=document.createElement("button"); autre.type="button"; autre.className="bouton-second";
+  autre.textContent="Comparer avec l’autre fonds";
+  autre.addEventListener("click",()=>{ appliquerProposition({...g, fonds:(g.fonds===fondsCalme()?fondsDynamique():fondsCalme())}); });
+  actions.append(btn,autre);
+  zone.append(h,sc,ul,av,actions);
+}
+$("form-guide").addEventListener("submit",ev=>{ev.preventDefault();afficherProposition();});
+
+function fixerMontant(id,valeur){ $(id).value=fmtEntier.format(valeur).replace(/ /g," "); $(id).dispatchEvent(new Event("input",{bubbles:false})); }
+function appliquerProposition(g){
+  selFonds.value=String(FONDS.indexOf(g.fonds));
+  $("entree").value=g.fonds.entree; $("sortie").value=g.fonds.sortie;
+  document.querySelector("input[name=scenario][value="+g.scenario+"]").checked=true;
+  if(g.scenario==="plan"){
+    $("p-age").value=g.ageA; $("p-age-retraite").value=g.ageR;
+    fixerMontant("p-mensuel",g.mensuel); fixerMontant("p-initial",0);
+    document.querySelector("input[name=p-mode][value="+g.modeRente+"]").checked=true;
+    $("p-ligne-montant").hidden=g.modeRente!=="montant"; $("p-ligne-duree").hidden=g.modeRente!=="duree";
+    if(g.modeRente==="montant") fixerMontant("p-rente",g.rente); else $("p-duree").value=g.renteDuree;
+  } else if(g.scenario==="rente"){
+    fixerMontant("r-capital",g.capital);
+    document.querySelector("input[name=r-mode][value="+g.modeRente+"]").checked=true;
+    $("r-ligne-montant").hidden=g.modeRente!=="montant"; $("r-ligne-duree").hidden=g.modeRente!=="duree";
+    if(g.modeRente==="montant") fixerMontant("r-rente",g.rente); else $("r-duree").value=g.renteDuree;
+  } else {
+    fixerMontant("initial",g.capital||0);
+    fixerMontant("versement",g.mensuel||0);
+    if(g.capital&&!g.mensuel) fixerMontant("versement",0);
+    document.querySelector("input[name=freq][value='1']").checked=true;
+    $("duree").value=Math.min(30,Math.max(1,g.horizon));
+  }
+  montrerVue("simulateur");
+  basculerScenario();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ————————————————— Navigation entre vues ————————————————— */
+function montrerVue(nom){
+  for(const v of document.querySelectorAll(".vue")) v.classList.remove("active");
+  $("vue-"+nom).classList.add("active");
+  $("fil").hidden=(nom==="accueil");
+  if(location.hash!=="#"+nom){ try{ history.replaceState(null,"","#"+nom);}catch(e){} }
+  if(nom==="simulateur") dessinerGraphe();
+}
+function vueDepuisHash(){
+  const h=(location.hash||"#accueil").slice(1);
+  montrerVue(["accueil","guide","simulateur"].includes(h)?h:"accueil");
+}
+window.addEventListener("hashchange",vueDepuisHash);
+$("porte-guide").addEventListener("click",()=>montrerVue("guide"));
+$("porte-libre").addEventListener("click",()=>montrerVue("simulateur"));
+
+/* ————————————————— Rapport PDF ————————————————— */
+function pdfTexte(s){
+  return String(s).replace(/[  ]/g," ").replace(/−/g,"-").replace(/→/g,"->").replace(/…/g,"...");
+}
+function svgVersPng(largeur,rappel){
+  const svg=document.createElementNS(SVG_NS,"svg");
+  svg.setAttribute("xmlns",SVG_NS);
+  dessinerCourbes(svg,largeur,PALETTE_CLAIRE,graphe.etat,graphe.res,false);
+  const xml=new XMLSerializer().serializeToString(svg);
+  const url=URL.createObjectURL(new Blob([xml],{type:"image/svg+xml;charset=utf-8"}));
+  const img=new Image();
+  img.onload=()=>{
+    const ech=2, c=document.createElement("canvas");
+    c.width=largeur*ech; c.height=336*ech;
+    const ctx=c.getContext("2d");
+    ctx.fillStyle="#FFFFFF"; ctx.fillRect(0,0,c.width,c.height);
+    ctx.drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(url);
+    rappel(c.toDataURL("image/jpeg",0.9));
+  };
+  img.onerror=()=>{ URL.revokeObjectURL(url); rappel(null); };
+  img.src=url;
+}
+function genererRapport(){
+  if(!window.jspdf||!graphe.res){ window.print(); return; }
+  const etat=graphe.etat, res=graphe.res;
+  svgVersPng(960,imgData=>{
+    const doc=new window.jspdf.jsPDF({unit:"mm",format:"a4"});
+    const L=210, MG=16, LU=L-2*MG;
+    const VERT=[15,76,51], AMBRE=[201,133,0], ENCRE=[28,43,34], GRIS=[110,120,111], FILET=[210,205,190];
+    let y=0;
+    /* bandeau */
+    doc.setFillColor(VERT[0],VERT[1],VERT[2]); doc.rect(0,0,L,26,"F");
+    doc.setFillColor(AMBRE[0],AMBRE[1],AMBRE[2]); doc.rect(0,26,L,1.1,"F");
+    doc.setTextColor(246,241,230);
+    doc.setFont("helvetica","bold"); doc.setFontSize(16);
+    doc.text("Simulateur OPCVM",MG,11.5);
+    doc.setFont("helvetica","normal"); doc.setFontSize(10);
+    doc.text("Rapport de simulation",MG,18.5);
+    const auj=new Date();
+    doc.text(pdfTexte("Édité le "+auj.getDate()+" "+MOIS_FR[auj.getMonth()]+" "+auj.getFullYear()),L-MG,18.5,{align:"right"});
+    y=36;
+    /* plan */
+    const nomsScenario={epargne:"Épargne par capitalisation",rente:"Rente tirée du capital",plan:"Plan retraite : épargne puis rente"};
+    doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]); doc.setFontSize(8.5); doc.setFont("helvetica","bold");
+    doc.text("VOTRE PLAN",MG,y); y+=1.6;
+    doc.setDrawColor(FILET[0],FILET[1],FILET[2]); doc.setLineWidth(0.25); doc.line(MG,y,L-MG,y); y+=5.4;
+    const paires=[["Fonds",etat.fonds.nom],["Scénario",nomsScenario[etat.scenario]]];
+    if(etat.scenario==="epargne"){
+      paires.push(["Mise de départ",F(etat.initial)],["Versement",F(etat.versement)+" ("+({1:"mensuel",3:"trimestriel",12:"annuel"})[etat.freq]+")"],["Durée",etat.annees+" ans"]);
+    } else if(etat.scenario==="rente"){
+      paires.push(["Capital placé",F(etat.capital)]);
+      paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:["Durée souhaitée",etat.dureeRente+" ans"]);
+    } else {
+      paires.push(["Âges",etat.ageA+" ans -> retraite à "+etat.ageR+" ans"],["Mise de départ",F(etat.initial)],["Versement mensuel",F(etat.mensuel)]);
+      paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:["Durée de rente",etat.dureeRente+" ans"]);
+    }
+    paires.push(["Rendement appliqué",fmtPct.format(etat.r*100)+" % par an (VL du "+libDate(etat.du)+" au "+libDate(etat.au)+")"]);
+    paires.push(["Droits",fmtPct.format(etat.entree)+" % entrée · "+fmtPct.format(etat.sortie)+" % sortie"]);
+    doc.setFontSize(9.5);
+    const colonne=LU/2;
+    let col=0, cy=y;
+    for(const p of paires){
+      const longue=pdfTexte(p[1]).length>34;
+      if(longue&&col===1){ col=0; cy+=6; }
+      const cx=MG+col*colonne;
+      doc.setFont("helvetica","normal"); doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]);
+      doc.text(pdfTexte(p[0]),cx,cy);
+      doc.setFont("helvetica","bold"); doc.setTextColor(ENCRE[0],ENCRE[1],ENCRE[2]);
+      doc.text(pdfTexte(p[1]),cx+34,cy);
+      if(longue){ col=0; cy+=6; }
+      else { col+=1; if(col===2){ col=0; cy+=6; } }
+    }
+    y=cy+(col===1?6:0)+4;
+    /* chiffres clés (repris des tuiles affichées) */
+    doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]); doc.setFontSize(8.5); doc.setFont("helvetica","bold");
+    doc.text("CHIFFRES CLÉS",MG,y); y+=1.6;
+    doc.line(MG,y,L-MG,y); y+=4;
+    const tuiles=[...document.querySelectorAll("#tuiles .tuile")].map(t=>({
+      lib:t.querySelector(".lib").textContent, val:t.querySelector(".val").textContent,
+      sous:t.querySelector(".sous")?t.querySelector(".sous").textContent:""}));
+    const lt=LU/4-3;
+    tuiles.slice(0,4).forEach((t,i)=>{
+      const cx=MG+i*(lt+4);
+      doc.setDrawColor(FILET[0],FILET[1],FILET[2]); doc.setLineWidth(0.25);
+      doc.rect(cx,y,lt,17);
+      doc.setFont("helvetica","normal"); doc.setFontSize(7.4); doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]);
+      doc.text(pdfTexte(t.lib),cx+2.5,y+4.4);
+      doc.setFont("helvetica","bold"); doc.setFontSize(10.6); doc.setTextColor(ENCRE[0],ENCRE[1],ENCRE[2]);
+      doc.text(pdfTexte(t.val),cx+2.5,y+9.8);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6.6); doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]);
+      doc.text(doc.splitTextToSize(pdfTexte(t.sous),lt-5),cx+2.5,y+13.4);
+    });
+    y+=22;
+    /* graphique */
+    if(imgData){ const hImg=LU*336/960; doc.addImage(imgData,"JPEG",MG,y,LU,hImg); y+=hImg+6; }
+    /* tableau */
+    const cols=colonnesTableau(etat), lignes=lignesTableau(etat,res);
+    const lCol=LU/cols.length;
+    const enTete=()=>{
+      doc.setFont("helvetica","bold"); doc.setFontSize(7.6); doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]);
+      cols.forEach((c,i)=>{
+        const cx=MG+i*lCol;
+        doc.text(pdfTexte(c.toUpperCase()),i===0?cx:cx+lCol-2,y,{align:i===0?"left":"right"});
+      });
+      y+=1.6; doc.setDrawColor(FILET[0],FILET[1],FILET[2]); doc.line(MG,y,L-MG,y); y+=4;
+    };
+    doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]); doc.setFontSize(8.5); doc.setFont("helvetica","bold");
+    if(y>250){ doc.addPage(); y=18; }
+    doc.text("DÉTAIL ANNÉE PAR ANNÉE",MG,y); y+=1.6; doc.line(MG,y,L-MG,y); y+=5;
+    enTete();
+    doc.setFontSize(8.6);
+    for(const l of lignes){
+      if(y>276){ doc.addPage(); y=18; enTete(); doc.setFontSize(8.6); }
+      l.cells.forEach((v,i)=>{
+        const cx=MG+i*lCol;
+        doc.setFont("helvetica",i===0?"bold":"normal");
+        doc.setTextColor(ENCRE[0],ENCRE[1],ENCRE[2]);
+        doc.text(pdfTexte(v),i===0?cx:cx+lCol-2,y,{align:i===0?"left":"right"});
+      });
+      y+=5;
+      doc.setDrawColor(240,236,225); doc.setLineWidth(0.15); doc.line(MG,y-3.4,L-MG,y-3.4);
+    }
+    /* avertissements */
+    if(y>252){ doc.addPage(); y=18; }
+    y+=4;
+    doc.setDrawColor(FILET[0],FILET[1],FILET[2]); doc.setLineWidth(0.25); doc.line(MG,y,L-MG,y); y+=4.5;
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.2); doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]);
+    const avert="Document pédagogique édité par le Simulateur OPCVM. Il ne constitue ni un conseil en investissement, ni une offre de souscription, ni une promesse de rendement. "+
+      "Le rendement appliqué est le rendement annualisé constaté sur l'historique des valeurs liquidatives du fonds, projeté à taux constant ; les performances passées ne préjugent pas des performances futures. "+
+      "Versements et retraits en début de mois ; droits d'entrée déduits de chaque versement ; droits de sortie appliqués à chaque retrait ou à la valeur finale ; frais de gestion déjà compris dans les VL ; rente non revalorisée de l'inflation ; fiscalité non prise en compte.";
+    doc.text(doc.splitTextToSize(pdfTexte(avert),LU),MG,y);
+    /* pied de page */
+    const n=doc.getNumberOfPages();
+    for(let i=1;i<=n;i++){
+      doc.setPage(i);
+      doc.setFont("helvetica","normal"); doc.setFontSize(7.2); doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]);
+      doc.text("luckylick07.github.io/Simulateur-OPCVM",MG,292);
+      doc.text(pdfTexte("Page "+i+" / "+n),L-MG,292,{align:"right"});
+    }
+    const nomFichier="simulation-"+etat.fonds.nom.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+".pdf";
+    doc.save(nomFichier);
+  });
+}
+$("btn-pdf").addEventListener("click",genererRapport);
+
+/* ————————————————— Démarrage ————————————————— */
+(function(){
+  const toutes=FONDS.flatMap(f=>f.labels).sort();
+  const derniere=toutes[toutes.length-1];
+  $("etiquette-vl").textContent="Version 2 · VL au "+libDate(derniere);
+  $("mention-source").textContent="Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds ; dernière VL intégrée : "+libDate(derniere)+".";
+  $("note-accueil").textContent="Fonds couverts : "+FONDS.map(f=>f.nom).join(", ")+" · historiques de VL du "+libDate(FONDS[0].labels[0])+" au "+libDate(derniere)+".";
+})();
+majBlocsGuide();
+basculerScenario();
+vueDepuisHash();
+
+/* Exposé pour vérification automatisée */
+window.__moteur={rendementAnnualise,simulerEpargne,simulerRente,simulerPlan,FONDS,construireProposition};
 </script>
 </body>
 </html>

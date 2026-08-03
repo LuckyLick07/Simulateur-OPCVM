@@ -139,6 +139,11 @@ def main():
         if len(couples) < 2:
             raise SystemExit(f"{chemin.name} : moins de deux VL exploitables.")
         reglage = reglages_pour(chemin)
+        rendements = [couples[i][1] / couples[i - 1][1] - 1 for i in range(1, len(couples))]
+        moyenne = sum(rendements) / len(rendements)
+        variance = sum((x - moyenne) ** 2 for x in rendements) / len(rendements)
+        vol_annuelle = (variance ** 0.5) * math.sqrt(252)
+        pire_var = max(abs(x) for x in rendements)
         fonds.append({
             "fichier": chemin.name,
             "ordre": reglage.get("ordre", 99),
@@ -147,6 +152,8 @@ def main():
                 "nom": nom_du_fonds(chemin),
                 "entree": reglage.get("entree", 0.0),
                 "sortie": reglage.get("sortie", 0.0),
+                "volAnnuelle": round(vol_annuelle, 4),
+                "pireVarJour": round(pire_var, 4),
                 "labels": [d.isoformat() for d, _ in couples],
                 "vl": [v for _, v in couples],
             },
@@ -170,7 +177,8 @@ def main():
         r = (f["vl"][-1] / f["vl"][0]) ** (1 / annees) - 1
         print(
             f"  · {f['nom']} : {len(f['vl'])} VL, du {j0} au {j1} "
-            f"({(j1 - j0).days} j), rendement annualisé {r * 100:+.2f} %"
+            f"({(j1 - j0).days} j), rendement annualisé {r * 100:+.2f} %, "
+            f"volatilité {f['volAnnuelle'] * 100:.1f} %, pire jour ±{f['pireVarJour'] * 100:.2f} %"
         )
 
 

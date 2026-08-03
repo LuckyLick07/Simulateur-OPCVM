@@ -9,18 +9,23 @@ Site publié : https://luckylick07.github.io/Simulateur-OPCVM/
 ## Principe
 
 Pour chaque fonds, le simulateur calcule le rendement annualisé constaté sur
-l'historique de ses valeurs liquidatives, puis projette à taux constant le plan
-d'épargne saisi (mise de départ, versements réguliers, durée, droits d'entrée et
-de sortie). Le graphique confronte deux courbes : le montant cumulé déposé et
-l'évolution du capital. Les frais de gestion étant déjà reflétés dans les VL,
-seuls les droits d'entrée et de sortie s'ajoutent au calcul.
+l'historique de ses valeurs liquidatives, puis projette à taux constant. Trois
+scénarios : épargne par capitalisation, rente tirée d'un capital (montant fixé →
+durée calculée, ou durée fixée → montant calculé, avec cas « à vie »), et plan
+retraite combinant épargne mensuelle jusqu'à la retraite puis rente jusqu'à
+épuisement. Un parcours guidé propose fonds et scénario d'après les réponses du
+visiteur, en expliquant ses critères (horizon, régularité observée des VL,
+frais). Chaque simulation s'exporte en rapport PDF d'un clic. Les frais de
+gestion étant déjà reflétés dans les VL, seuls les droits d'entrée (sur chaque
+versement) et de sortie (sur chaque retrait ou la valeur finale) s'ajoutent.
 
 ## Structure du dépôt
 
 - `index.html` — le simulateur, engendré à partir du gabarit (ne pas éditer à la main)
 - `donnees-vl/` — un fichier d'historique de VL par fonds (CSV `date;vl`, dates `JJ/MM/AAAA` ou `AAAA-MM-JJ`, décimales avec virgule ou point)
-- `outil/gabarit.html` — le gabarit de la page (mise en forme, moteur de calcul)
-- `outil/integrer_vl.py` — engendre `index.html` depuis le gabarit et les fichiers de `donnees-vl/`
+- `outil/gabarit.html` — le gabarit de la page (mise en forme, moteurs de calcul, parcours guidé, rapport PDF)
+- `outil/integrer_vl.py` — engendre `index.html` depuis le gabarit et les fichiers de `donnees-vl/` (rendement, volatilité et pire variation calculés par fonds)
+- `vendeur/jspdf.umd.min.js` — bibliothèque de génération PDF, embarquée pour que le site reste sans dépendance externe
 
 ## Mettre à jour les valeurs liquidatives
 
