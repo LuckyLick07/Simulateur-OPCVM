@@ -4,7 +4,7 @@ Simulateur d'épargne en fonds communs de placement de l'UMOA, destiné au grand
 public. Page statique unique, sans dépendance : tout le calcul s'exécute dans le
 navigateur.
 
-Site publié : https://luckylick07.github.io/Simulateur-OPCVM/
+Site publié : https://simulateur.malickamadou.com/
 
 ## Principe
 
@@ -44,7 +44,7 @@ messagerie du visiteur avec le résumé prérédigé (aucun service tiers). Une 
 les trois clés renseignées (`service`, `template`, `publicKey` d'un compte
 EmailJS) et `index.html` régénéré, l'envoi devient automatique depuis la page.
 Dans le compte EmailJS, restreindre les origines autorisées à
-`luckylick07.github.io` pour éviter tout usage du quota par un tiers.
+`simulateur.malickamadou.com` pour éviter tout usage du quota par un tiers.
 
 ## Avertissement
 

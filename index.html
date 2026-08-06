@@ -522,7 +522,7 @@
 <footer>
   <div class="int">
     <span>Simulateur OPCVM — version 2, août 2026</span>
-    <span>Textes de référence du marché financier&nbsp;: <a href="https://luckylick07.github.io/textes-mfr-umoa/">textes-mfr-umoa</a></span>
+    <span>Textes de référence du marché financier&nbsp;: <a href="https://textes.malickamadou.com/">textes-mfr-umoa</a></span>
   </div>
 </footer>
 
@@ -1380,7 +1380,7 @@ function genererRapport(){
     for(let i=1;i<=n;i++){
       doc.setPage(i);
       doc.setFont("helvetica","normal"); doc.setFontSize(7.2); doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]);
-      doc.text("luckylick07.github.io/Simulateur-OPCVM",MG,292);
+      doc.text("simulateur.malickamadou.com",MG,292);
       doc.text(pdfTexte("Page "+i+" / "+n),L-MG,292,{align:"right"});
     }
     const nomFichier="simulation-"+etat.fonds.nom.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+".pdf";
@@ -1430,7 +1430,7 @@ function construireResume(etat){
     lignes.push(lib+" : "+val+sous);
   }
   lignes.push("");
-  lignes.push("Refaire ou affiner la simulation : https://luckylick07.github.io/Simulateur-OPCVM/");
+  lignes.push("Refaire ou affiner la simulation : https://simulateur.malickamadou.com/");
   lignes.push("");
   lignes.push("Document pédagogique — ni conseil en investissement, ni offre de souscription, ni promesse de rendement. Les performances passées ne préjugent pas des performances futures.");
   return lignes.join("\n").replace(/[\u202f\u00a0]/g," ");
@@ -1455,7 +1455,7 @@ $("btn-envoyer-email").addEventListener("click",()=>{
       resume:resume,
       parametres_html:construireParametresHtml(etat),
       chiffres_html:construireChiffresHtml(),
-      lien:"https://luckylick07.github.io/Simulateur-OPCVM/"
+      lien:"https://simulateur.malickamadou.com/"
     }).then(()=>{ statut.textContent="Envoyé. Vérifiez votre boîte de réception (et les indésirables)."; })
       .catch(err=>{ statut.textContent="L’envoi a échoué ("+((err&&err.text)||"erreur réseau")+"). Réessayez plus tard."; });
   } else {
