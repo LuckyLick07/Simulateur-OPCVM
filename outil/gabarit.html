@@ -274,7 +274,7 @@
   </div>
 </header>
 
-<nav class="fil" id="fil" hidden>
+<nav class="fil" id="fil">
   <a href="#accueil" data-vue="accueil">Accueil</a> ·
   <a href="#comprendre" data-vue="comprendre">Comprendre</a> ·
   <a href="#aide" data-vue="aide">Questions &amp; lexique</a> ·
@@ -326,6 +326,7 @@
         <span class="appel">Voir la simulation →</span>
       </button>
     </div>
+    <p class="accueil-note">Une question, un terme inconnu&nbsp;? Consultez les <a href="#aide">questions fréquentes &amp; le lexique</a>.</p>
     <p class="accueil-note" id="note-accueil"></p>
   </div>
 </section>
@@ -1522,7 +1523,6 @@ function appliquerProposition(g){
 function montrerVue(nom){
   for(const v of document.querySelectorAll(".vue")) v.classList.remove("active");
   $("vue-"+nom).classList.add("active");
-  $("fil").hidden=(nom==="accueil");
   for(const a of document.querySelectorAll("#fil a")){
     if(a.dataset.vue===nom) a.setAttribute("aria-current","page");
     else a.removeAttribute("aria-current");
