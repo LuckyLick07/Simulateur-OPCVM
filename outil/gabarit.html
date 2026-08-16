@@ -361,7 +361,7 @@
     <section class="carte" aria-labelledby="titre-plan">
       <h2 class="titre-section" id="titre-plan">Votre plan</h2>
       <form id="formulaire" autocomplete="off">
-        <label class="champ">Fonds
+        <label class="champ">Fonds ou indice
           <select id="fonds"></select>
         </label>
         <div class="fiche-fonds" id="fiche-fonds"></div>
@@ -515,6 +515,7 @@
   <h2>Hypothèses et avertissements</h2>
   <p>Cet outil est fourni à titre pédagogique. Il ne constitue ni un conseil en investissement, ni une offre de souscription, ni une promesse de rendement. La proposition du parcours guidé est établie à partir de vos seules réponses et ne constitue pas une recommandation personnalisée.</p>
   <p>Le rendement appliqué est le rendement annualisé constaté sur l’historique des valeurs liquidatives du fonds sélectionné, projeté à taux constant. Les performances passées ne préjugent pas des performances futures.</p>
+  <p>Les indices boursiers proposés sont des indices de prix&nbsp;: les dividendes ne sont pas pris en compte, et un indice n’est pas directement investissable — les simulations correspondantes sont théoriques.</p>
   <p>Hypothèses de calcul&nbsp;: versements et retraits en début de mois&nbsp;; droits d’entrée déduits de chaque versement&nbsp;; droits de sortie appliqués à chaque retrait ou à la valeur finale&nbsp;; frais de gestion déjà compris dans les valeurs liquidatives&nbsp;; rente constante, non revalorisée de l’inflation&nbsp;; fiscalité non prise en compte.</p>
   <p id="mention-source">Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds.</p>
 </section>
@@ -760,7 +761,8 @@ function majFiche(etat){
   const rdtVal=document.createElement("div"); rdtVal.className="rdt-val";
   rdtVal.textContent=fmtPct.format(etat.r*100)+" % par an";
   const per=document.createElement("div"); per.className="periode";
-  per.textContent="VL "+fmtEntier.format(f.vl[0])+" → "+fmtEntier.format(f.vl[f.vl.length-1])+" · "+libDate(f.labels[0])+" – "+libDate(f.labels[f.labels.length-1])+" ("+f.vl.length+" VL)";
+  const estIndice=f.type==="indice";
+  per.textContent=(estIndice?"Indice ":"VL ")+fmtEntier.format(f.vl[0])+" → "+fmtEntier.format(f.vl[f.vl.length-1])+" · "+libDate(f.labels[0])+" – "+libDate(f.labels[f.labels.length-1])+" ("+f.vl.length+(estIndice?" cotations)":" VL)");
   const vol=document.createElement("div"); vol.className="periode";
   vol.textContent="Variations quotidiennes observées jusqu’à ±"+fmtPct.format(f.pireVarJour*100)+" %";
   const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
@@ -770,6 +772,11 @@ function majFiche(etat){
   p.setAttribute("stroke","currentColor");p.setAttribute("stroke-width","1.5");
   svg.appendChild(p);
   el.append(rdt,rdtVal,per,vol,svg);
+  if(estIndice){
+    const nbi=document.createElement("div"); nbi.className="periode";
+    nbi.textContent="Indice de référence : il n’est pas directement investissable et les dividendes ne sont pas pris en compte (indice de prix) — simulation théorique.";
+    el.appendChild(nbi);
+  }
   if(etat.annees_obs<1){
     const nb=document.createElement("div"); nb.className="periode";
     nb.textContent="Historique court ("+libDureeAnnees(etat.annees_obs)+") : rendement annualisé à considérer avec prudence.";
@@ -1056,7 +1063,7 @@ function recalculer(){
   majLegende(etat);
   const titres={epargne:"Évolution de votre épargne",rente:"Votre rente et votre capital",plan:"Votre plan retraite"};
   $("titre-graphe").textContent=titres[etat.scenario];
-  $("sous-graphe").textContent="Montants en francs CFA · rendement "+fmtPct.format(etat.r*100)+" % par an issu des VL";
+  $("sous-graphe").textContent="Montants en francs CFA · rendement "+fmtPct.format(etat.r*100)+" % par an issu de l’historique";
   dessinerGraphe();
   majTableau(etat,res);
 }
@@ -1092,8 +1099,9 @@ new ResizeObserver(()=>{ if(graphe.etat&&document.querySelector("#vue-simulateur
 if(window.matchMedia){ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>recalculer()); }
 
 /* ————————————————— Parcours guidé ————————————————— */
-function fondsCalme(){ return [...FONDS].sort((a,b)=>a.volAnnuelle-b.volAnnuelle)[0]; }
-function fondsDynamique(){ return [...FONDS].sort((a,b)=>b.volAnnuelle-a.volAnnuelle)[0]; }
+function fondsInvestissables(){ const l=FONDS.filter(f=>f.type!=="indice"); return l.length?l:FONDS; }
+function fondsCalme(){ return [...fondsInvestissables()].sort((a,b)=>a.volAnnuelle-b.volAnnuelle)[0]; }
+function fondsDynamique(){ return [...fondsInvestissables()].sort((a,b)=>b.volAnnuelle-a.volAnnuelle)[0]; }
 
 function majBlocsGuide(){
   const obj=document.querySelector("input[name=g-objectif]:checked").value;
@@ -1263,7 +1271,7 @@ function svgVersPng(largeur,rappel){
 }
 function construirePaires(etat){
   const nomsScenario={epargne:"Épargne par capitalisation",rente:"Rente tirée du capital",plan:"Plan retraite : épargne puis rente"};
-  const paires=[["Fonds",etat.fonds.nom],["Scénario",nomsScenario[etat.scenario]]];
+  const paires=[[etat.fonds.type==="indice"?"Indice":"Fonds",etat.fonds.nom],["Scénario",nomsScenario[etat.scenario]]];
   if(etat.scenario==="epargne"){
   paires.push(["Mise de départ",F(etat.initial)],["Versement",F(etat.versement)+" ("+({1:"mensuel",3:"trimestriel",12:"annuel"})[etat.freq]+")"],["Durée",etat.annees+" ans"]);
   } else if(etat.scenario==="rente"){
@@ -1468,8 +1476,8 @@ $("btn-envoyer-email").addEventListener("click",()=>{
 (function(){
   const toutes=FONDS.flatMap(f=>f.labels).sort();
   const derniere=toutes[toutes.length-1];
-  $("etiquette-vl").textContent="Version 2 · VL au "+libDate(derniere);
-  $("mention-source").textContent="Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds ; dernière VL intégrée : "+libDate(derniere)+".";
+  $("etiquette-vl").textContent="Version 2 · données au "+libDate(derniere);
+  $("mention-source").textContent="Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds ; dernières données intégrées : "+libDate(derniere)+".";
   $("note-accueil").textContent="Fonds couverts : "+FONDS.map(f=>f.nom).join(", ")+" · historiques de VL du "+libDate(FONDS[0].labels[0])+" au "+libDate(derniere)+".";
 })();
 majBlocsGuide();

@@ -29,6 +29,8 @@ SORTIE = RACINE / "index.html"
 REGLAGES = {
     "confort": {"ordre": 1, "entree": 0.75, "sortie": 0.0},
     "capital": {"ordre": 2, "entree": 1.5, "sortie": 1.5},
+    "brvm": {"ordre": 3, "entree": 0.0, "sortie": 0.0,
+             "type": "indice", "nom": "BRVM Composite (indice)"},
 }
 
 # ————— Envoi du résumé par e-mail (EmailJS) —————
@@ -158,7 +160,8 @@ def main():
             "ordre": reglage.get("ordre", 99),
             "donnees": {
                 "id": chemin.stem,
-                "nom": nom_du_fonds(chemin),
+                "nom": reglage.get("nom", nom_du_fonds(chemin)),
+                "type": reglage.get("type", "fonds"),
                 "entree": reglage.get("entree", 0.0),
                 "sortie": reglage.get("sortie", 0.0),
                 "volAnnuelle": round(vol_annuelle, 4),
