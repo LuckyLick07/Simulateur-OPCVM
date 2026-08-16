@@ -20,6 +20,8 @@
     --serie-capital:#0E9F6E;
     --serie-verse:#C98500;
     --serie-percu:#2A78D6;
+    --serie-comp1:#E87BA4;
+    --serie-comp2:#4A3AA7;
     --bandeau:#0F4C33;
     --creme:#F6F1E6;
     --gain:#0A6B3D;
@@ -40,6 +42,8 @@
       --serie-capital:#0DA07A;
       --serie-verse:#C98500;
       --serie-percu:#3987E5;
+      --serie-comp1:#D55181;
+      --serie-comp2:#9085E9;
       --bandeau:#0F3B29;
       --creme:#E9F2EA;
       --gain:#3FBF8C;
@@ -59,39 +63,48 @@
 
   /* ————— Bandeau ————— */
   header.bandeau{background:var(--bandeau); color:var(--creme); border-bottom:3px solid var(--serie-verse);}
-  .bandeau-int{max-width:1120px;margin:0 auto;padding:26px 20px 22px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;}
-  .bandeau h1{margin:0;font-size:30px;letter-spacing:.2px}
+  .bandeau-int{max-width:1120px;margin:0 auto;padding:13px 20px 11px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;}
+  .bandeau h1{margin:0;font-size:22px;letter-spacing:.2px}
   .bandeau h1 a{color:inherit;text-decoration:none}
-  .bandeau .sous-titre{margin:0;font-size:14.5px;opacity:.92;flex:1 1 260px}
+  .bandeau .sous-titre{margin:0;font-size:13px;opacity:.92;flex:1 1 240px}
   .etiquette{
-    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
-    border:1px solid rgba(246,241,230,.45);padding:4px 9px;color:var(--creme);border-radius:2px;
+    font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;white-space:nowrap;
+    border:1px solid rgba(246,241,230,.45);padding:3px 8px;color:var(--creme);border-radius:4px;
   }
 
   /* ————— Gabarit général ————— */
   .contenu{max-width:1120px;margin:0 auto;padding:26px 20px 8px}
   .vue{display:none}
   .vue.active{display:block}
-  .fil{max-width:1120px;margin:0 auto;padding:14px 20px 0;font-size:13px}
+  .fil{
+    position:sticky;top:0;z-index:30;background:var(--page);
+    border-bottom:1px solid var(--hairline);
+    padding:10px 20px;font-size:13px;
+  }
+  .fil-int{max-width:1120px;margin:0 auto}
   .fil{color:var(--muted)}
-  .fil a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--baseline)}
+  .fil a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--baseline);padding:2px 1px;transition:color .15s ease,border-color .15s ease}
+  .fil a:hover{color:var(--serie-capital);border-bottom-color:var(--serie-capital)}
   .fil a[aria-current="page"]{color:var(--ink);font-weight:600;border-bottom-color:var(--serie-capital)}
   .fil a:hover{color:var(--ink)}
-  .carte{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:20px 20px 18px}
+  .carte{background:var(--card);border:1px solid var(--hairline);border-radius:8px;padding:20px 20px 18px;box-shadow:0 1px 3px rgba(20,30,24,.05)}
   .titre-section{
     font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);
     margin:0 0 14px;padding-bottom:9px;border-bottom:1px solid var(--grid);font-weight:600;
   }
   .bouton{
     display:inline-block;background:var(--bandeau);color:var(--creme);border:1px solid var(--bandeau);
-    font:inherit;font-weight:600;padding:10px 18px;border-radius:2px;cursor:pointer;
+    font:inherit;font-weight:600;padding:10px 18px;border-radius:8px;cursor:pointer;
+    transition:background .15s ease, transform .12s ease, box-shadow .15s ease;
   }
-  .bouton:hover{filter:brightness(1.12)}
+  .bouton:hover{background:var(--serie-capital);border-color:var(--serie-capital);transform:translateY(-1px);box-shadow:0 5px 14px rgba(14,159,110,.28)}
+  .bouton:active{transform:translateY(0)}
   .bouton-second{
     display:inline-block;background:transparent;color:var(--ink);border:1px solid var(--baseline);
-    font:inherit;padding:9px 16px;border-radius:2px;cursor:pointer;
+    font:inherit;padding:9px 16px;border-radius:8px;cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, color .15s ease, transform .12s ease;
   }
-  .bouton-second:hover{border-color:var(--ink-2)}
+  .bouton-second:hover{background:color-mix(in srgb, var(--serie-capital) 10%, var(--card));border-color:var(--serie-capital);color:var(--ink);transform:translateY(-1px)}
   .bouton:focus-visible,.bouton-second:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
   /* ————— Accueil ————— */
@@ -101,10 +114,13 @@
   .portes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
   @media (max-width:760px){ .portes{grid-template-columns:1fr} }
   .porte{
-    text-align:left;background:var(--card);border:1px solid var(--hairline);border-radius:3px;
+    text-align:left;background:var(--card);border:1px solid var(--hairline);border-radius:10px;
     padding:24px 22px 20px;cursor:pointer;font:inherit;color:var(--ink);display:block;width:100%;
+    box-shadow:0 1px 3px rgba(20,30,24,.05);
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
   }
-  .porte:hover{border-color:var(--serie-capital)}
+  .porte:hover{border-color:var(--serie-capital);transform:translateY(-3px);box-shadow:0 8px 20px rgba(14,159,110,.14)}
+  .porte:hover .appel{color:var(--ink);border-bottom-color:var(--ink)}
   .porte:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   .porte .num{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
   .porte h3{font-size:21px;margin:6px 0 8px}
@@ -114,10 +130,12 @@
   .exemples-liste{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
   @media (max-width:760px){ .exemples-liste{grid-template-columns:1fr} }
   .exemple{
-    text-align:left;background:var(--card);border:1px solid var(--hairline);border-radius:3px;
+    text-align:left;background:var(--card);border:1px solid var(--hairline);border-radius:10px;
     padding:14px 16px 12px;cursor:pointer;font:inherit;color:var(--ink);
+    box-shadow:0 1px 3px rgba(20,30,24,.05);
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
   }
-  .exemple:hover{border-color:var(--serie-capital)}
+  .exemple:hover{border-color:var(--serie-capital);transform:translateY(-2px);box-shadow:0 6px 16px rgba(14,159,110,.13)}
   .exemple:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   .exemple .qui{font-weight:600}
   .exemple .quoi{color:var(--ink-2);font-size:13px;margin-top:2px}
@@ -135,7 +153,8 @@
   .schema-fcp svg{display:block;width:100%;height:auto}
   .comprendre details{border-top:1px solid var(--grid)}
   .comprendre details:last-of-type{border-bottom:1px solid var(--grid)}
-  .comprendre summary{cursor:pointer;font-weight:600;font-size:14.5px;color:var(--ink);padding:10px 0}
+  .comprendre summary{cursor:pointer;font-weight:600;font-size:14.5px;color:var(--ink);padding:10px 0;transition:color .15s ease}
+  .comprendre summary:hover{color:var(--serie-capital)}
   .comprendre details p{margin:2px 0 12px}
   dl.lexique dt{font-weight:600;margin-top:11px;font-size:14.5px}
   dl.lexique dd{margin:1px 0 0;color:var(--ink-2);font-size:14px}
@@ -154,9 +173,11 @@
   .question .intitule{display:block;font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:6px}
   .choix-liste{display:flex;flex-direction:column;gap:6px}
   .choix-liste label{
-    border:1px solid var(--baseline);border-radius:2px;padding:9px 12px;cursor:pointer;
+    border:1px solid var(--baseline);border-radius:6px;padding:9px 12px;cursor:pointer;
     display:flex;gap:9px;align-items:baseline;font-size:14px;
+    transition:border-color .15s ease, background .15s ease;
   }
+  .choix-liste label:hover{border-color:var(--serie-capital)}
   .choix-liste label:has(input:checked){border-color:var(--bandeau);background:color-mix(in srgb, var(--bandeau) 7%, var(--card));font-weight:600}
   .choix-liste input{accent-color:var(--serie-capital)}
   .choix-liste .detail{font-weight:400;color:var(--ink-2);font-size:12.5px;display:block}
@@ -173,14 +194,17 @@
   label.champ{display:block;font-size:13px;color:var(--ink-2);font-weight:600}
   .champ input,.champ select{
     margin-top:5px;width:100%;font:inherit;color:var(--ink);background:var(--card);
-    border:1px solid var(--baseline);border-radius:2px;padding:8px 10px;
+    border:1px solid var(--baseline);border-radius:6px;padding:8px 10px;
+    transition:border-color .15s ease;
   }
+  .champ input:hover,.champ select:hover{border-color:var(--ink-2)}
   .champ input:focus,.champ select:focus,.segmente label:focus-within{outline:2px solid var(--focus);outline-offset:1px}
   .suffixe{position:relative;display:block;margin-top:5px}
   .suffixe input{margin-top:0;padding-right:64px}
   .suffixe .unite{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12.5px;color:var(--muted);pointer-events:none}
-  .segmente{display:flex;border:1px solid var(--baseline);border-radius:2px;overflow:hidden;margin-top:5px}
-  .segmente label{flex:1;text-align:center;font-size:13px;color:var(--ink-2);padding:7px 2px;cursor:pointer;border-left:1px solid var(--baseline)}
+  .segmente{display:flex;border:1px solid var(--baseline);border-radius:6px;overflow:hidden;margin-top:5px}
+  .segmente label{flex:1;text-align:center;font-size:13px;color:var(--ink-2);padding:7px 2px;cursor:pointer;border-left:1px solid var(--baseline);transition:background .15s ease,color .15s ease}
+  .segmente label:hover{background:color-mix(in srgb, var(--serie-capital) 9%, var(--card));color:var(--ink)}
   .segmente label:first-child{border-left:none}
   .segmente input{position:absolute;opacity:0;pointer-events:none}
   .segmente label:has(input:checked){background:var(--bandeau);color:var(--creme);font-weight:600}
@@ -207,13 +231,15 @@
   .colonne-resultats{display:flex;flex-direction:column;gap:22px;min-width:0}
   .tuiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:stretch}
   @media (max-width:1060px){ .tuiles{grid-template-columns:repeat(2,minmax(0,1fr))} }
-  .tuile{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:13px 15px 12px;min-width:0}
+  .tuile{background:var(--card);border:1px solid var(--hairline);border-radius:8px;padding:13px 15px 12px;min-width:0;box-shadow:0 1px 3px rgba(20,30,24,.05);transition:border-color .15s ease, box-shadow .15s ease}
   .tuile .lib{font-size:12px;color:var(--ink-2)}
   .tuile .val{font-size:18.5px;font-weight:600;margin-top:3px;letter-spacing:.1px;line-height:1.3}
   .tuile .val.moyenne{font-size:16px}
   .tuile .val.petite{font-size:14.5px}
   .tuile .sous{font-size:11.5px;color:var(--muted);margin-top:3px}
   .val.pos{color:var(--gain)} .val.neg{color:var(--perte)}
+  .tuile.vedette{border:1.5px solid var(--serie-capital);background:color-mix(in srgb, var(--serie-capital) 6%, var(--card))}
+  .tuile.vedette .lib{color:var(--gain);font-weight:600}
 
   .entete-graphe{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:4px}
   .entete-graphe h2{font-size:18px;margin:0}
@@ -237,6 +263,22 @@
   .infobulle .qui{color:var(--ink-2)}
 
   .barre-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+  .choix-comparaison{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:2px 0 12px;font-size:13px;color:var(--ink-2)}
+  .puce-comp{
+    display:inline-flex;align-items:center;gap:7px;border:1px solid var(--baseline);border-radius:20px;
+    padding:5px 13px;cursor:pointer;font-size:13px;color:var(--ink);background:var(--card);
+    transition:border-color .15s ease, background .15s ease, transform .12s ease;
+  }
+  .puce-comp:hover{border-color:var(--serie-capital);transform:translateY(-1px)}
+  .puce-comp input{position:absolute;opacity:0;pointer-events:none}
+  .puce-comp .cle-comp{width:14px;height:0;border-top:2.5px dashed transparent;border-radius:1px}
+  .puce-comp.active{
+    border-color:var(--bandeau);background:var(--bandeau);color:var(--creme);font-weight:600;
+    box-shadow:0 3px 10px rgba(15,76,51,.25);
+  }
+  .puce-comp.active::before{content:"✓";font-weight:700;margin-right:2px}
+  .puce-comp.active:hover{transform:none;border-color:var(--bandeau)}
+  .legende .trait.pointille{border-top-style:dashed}
   .panneau-email{padding:14px 16px 12px}
   .ligne-email{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
   .ligne-email input{flex:1;min-width:220px;font:inherit;padding:8px 10px;border:1px solid var(--baseline);border-radius:2px;background:var(--card);color:var(--ink)}
@@ -274,12 +316,12 @@
   </div>
 </header>
 
-<nav class="fil" id="fil">
+<nav class="fil" id="fil"><div class="fil-int">
   <a href="#accueil" data-vue="accueil">Accueil</a> ·
   <a href="#comprendre" data-vue="comprendre">Comprendre</a> ·
   <a href="#aide" data-vue="aide">Questions &amp; lexique</a> ·
   <a href="#simulateur" data-vue="simulateur">Simulateur</a>
-</nav>
+</div></nav>
 
 <!-- ═══════════════ ACCUEIL ═══════════════ -->
 <section class="vue" id="vue-accueil">
@@ -435,6 +477,7 @@
     <details><summary>Comment lire le graphique ?</summary><p>La courbe ambre cumule ce que vous versez, la courbe verte montre ce que vaut votre capital, et la courbe bleue — quand une rente est servie — cumule ce que vous avez perçu. L’écart entre ambre et vert, ce sont les rendements.</p></details>
     <details><summary>Pourquoi ma rente s’arrête — ou dure «&nbsp;à vie&nbsp;» ?</summary><p>Chaque retrait entame le capital, que les rendements reconstituent en partie. Si le retrait dépasse ce que le capital produit, celui-ci s’épuise à une date que le simulateur calcule. S’il reste en dessous, le capital n’est jamais entamé&nbsp;: la rente peut durer indéfiniment.</p></details>
     <details><summary>Et l’inflation dans tout ça ?</summary><p>Le simulateur raisonne en francs d’aujourd’hui et sert des rentes constantes&nbsp;: il ne tient pas compte de l’inflation, qui érode le pouvoir d’achat sur les longues durées. Un point à garder en tête pour les projections à vingt ou trente ans.</p></details>
+    <details><summary>Et les impôts, dans tout ça ?</summary><p>Bonne nouvelle&nbsp;: dans l’UMOA, les revenus des placements en OPCVM bénéficient d’un régime de faveur, et les fonds présentés ici sont exonérés d’impôt pour l’épargnant. Le simulateur n’applique donc aucune fiscalité. En cas de situation particulière, la notice du fonds et votre conseiller font foi.</p></details>
     <details><summary>Mon adresse e-mail est-elle conservée ?</summary><p>Non. L’adresse saisie sert uniquement à l’envoi du résumé demandé&nbsp;; elle n’est ni enregistrée par le site, ni réutilisée, ni partagée.</p></details>
 
     <h3 id="lexique">Lexique</h3>
@@ -724,9 +767,20 @@
       </section>
 
       <div class="barre-actions">
+        <button type="button" class="bouton-second" id="btn-comparer">Comparer les supports</button>
         <button type="button" class="bouton-second" id="btn-email">Recevoir par e-mail</button>
         <button type="button" class="bouton-second" id="btn-pdf">Télécharger le rapport (PDF)</button>
       </div>
+
+      <section class="carte" id="carte-comparaison" hidden style="overflow-x:auto">
+        <div class="choix-comparaison" id="choix-comparaison"></div>
+        <table id="tableau-comparaison">
+          <caption>Comparaison des supports — mêmes paramètres, frais propres à chacun</caption>
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+        <p class="note-frais" id="note-comparaison"></p>
+      </section>
 
       <div class="carte panneau-email" id="panneau-email" hidden>
         <label class="champ" for="email-dest">Votre adresse e-mail</label>
@@ -754,7 +808,7 @@
   <p>Cet outil est fourni à titre pédagogique. Il ne constitue ni un conseil en investissement, ni une offre de souscription, ni une promesse de rendement. La proposition du parcours guidé est établie à partir de vos seules réponses et ne constitue pas une recommandation personnalisée.</p>
   <p>Le rendement appliqué est le rendement annualisé constaté sur l’historique des valeurs liquidatives du fonds sélectionné, projeté à taux constant. Les performances passées ne préjugent pas des performances futures.</p>
   <p>Les indices boursiers proposés sont des indices de prix&nbsp;: les dividendes ne sont pas pris en compte, et un indice n’est pas directement investissable — les simulations correspondantes sont théoriques.</p>
-  <p>Hypothèses de calcul&nbsp;: versements et retraits en début de mois&nbsp;; droits d’entrée déduits de chaque versement&nbsp;; droits de sortie appliqués à chaque retrait ou à la valeur finale&nbsp;; frais de gestion déjà compris dans les valeurs liquidatives&nbsp;; rente constante, non revalorisée de l’inflation&nbsp;; fiscalité non prise en compte.</p>
+  <p>Hypothèses de calcul&nbsp;: versements et retraits en début de mois&nbsp;; droits d’entrée déduits de chaque versement&nbsp;; droits de sortie appliqués à chaque retrait ou à la valeur finale&nbsp;; frais de gestion déjà compris dans les valeurs liquidatives&nbsp;; rente constante, non revalorisée de l’inflation&nbsp;; aucune fiscalité appliquée — les fonds présentés sont exonérés d’impôt pour l’épargnant.</p>
   <p id="mention-source">Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds.</p>
 </section>
 
@@ -961,11 +1015,11 @@ function calculer(etat){
 }
 
 /* ————————————————— Palette ————————————————— */
-const PALETTE_CLAIRE={capital:"#0E9F6E",verse:"#C98500",percu:"#2A78D6",grid:"#EAE4D6",baseline:"#C9C2B0",muted:"#75816F",ink:"#1C2B22",ink2:"#4E5D52",card:"#FFFEFA"};
+const PALETTE_CLAIRE={capital:"#0E9F6E",verse:"#C98500",percu:"#2A78D6",comp1:"#E87BA4",comp2:"#4A3AA7",grid:"#EAE4D6",baseline:"#C9C2B0",muted:"#75816F",ink:"#1C2B22",ink2:"#4E5D52",card:"#FFFEFA"};
 function couleurs(){
   const cs=getComputedStyle(document.documentElement);
   const p=n=>cs.getPropertyValue(n).trim();
-  return {capital:p("--serie-capital"),verse:p("--serie-verse"),percu:p("--serie-percu"),
+  return {capital:p("--serie-capital"),verse:p("--serie-verse"),percu:p("--serie-percu"),comp1:p("--serie-comp1"),comp2:p("--serie-comp2"),
           grid:p("--grid"),baseline:p("--baseline"),muted:p("--muted"),ink:p("--ink"),ink2:p("--ink-2"),card:p("--card")};
 }
 function seriesActives(etat){
@@ -1048,8 +1102,8 @@ function majFiche(etat){
 }
 
 /* ————————————————— Tuiles ————————————————— */
-function tuile(lib,val,sous,classe){
-  const t=document.createElement("div");t.className="tuile";
+function tuile(lib,val,sous,classe,vedette){
+  const t=document.createElement("div");t.className="tuile"+(vedette?" vedette":"");
   const l=document.createElement("div");l.className="lib";l.textContent=lib;
   const v=document.createElement("div");
   const taille=val.length>=17?" petite":(val.length>=14?" moyenne":"");
@@ -1065,7 +1119,7 @@ function majTuiles(etat,res){
     const gain=res.net-res.totalVerse, pct=res.totalVerse>0?gain/res.totalVerse:0;
     c.append(
       tuile("Total versé",F(res.totalVerse), res.fraisEntree>0?("dont droits d’entrée : "+F(res.fraisEntree)):("sur "+etat.annees+" ans")),
-      tuile("Valeur au terme",F(res.net), etat.sortie>0?"nette de droits de sortie":("au bout de "+etat.annees+" ans")),
+      tuile("Valeur au terme",F(res.net), etat.sortie>0?"nette de droits de sortie":("au bout de "+etat.annees+" ans"),null,true),
       tuile("Gain net",(gain>=0?"+":"−")+F(Math.abs(gain)), "soit "+fmtPct.format(Math.abs(pct)*100)+" % du total versé", gain>=0?"pos":"neg"),
       tuile("Rendement appliqué",fmtPct.format(etat.r*100)+" %", "VL du "+libDate(etat.du)+" au "+libDate(etat.au))
     );
@@ -1075,7 +1129,7 @@ function majTuiles(etat,res){
     const rr=res.rente;
     c.append(
       tuile("Capital placé",F(etat.capital), etat.entree>0?("net investi : "+F(rr.investi)):"investi en une fois"),
-      tuile("Rente mensuelle nette",F(rr.renteNette), etat.modeRente==="avie"?"calculée pour préserver le capital":(etat.sortie>0?("retrait brut : "+F(rr.retraitBrut)):(etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi"))),
+      tuile("Rente mensuelle nette",F(rr.renteNette), etat.modeRente==="avie"?"calculée pour préserver le capital":(etat.sortie>0?("retrait brut : "+F(rr.retraitBrut)):(etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi")),null,true),
       rr.aVie
         ? tuile("Servie pendant","À vie","le capital n’est jamais épuisé","pos")
         : tuile("Servie pendant",libDureeMois(rr.dureeMois),"jusqu’à épuisement du capital"),
@@ -1088,7 +1142,7 @@ function majTuiles(etat,res){
   const pl=res.plan, rr=pl.rente;
   c.append(
     tuile("Capital à la retraite",F(pl.capRetraite),"à "+etat.ageR+" ans, après "+(etat.ageR-etat.ageA)+" ans d’épargne"),
-    tuile("Rente mensuelle nette",F(rr.renteNette), etat.modeRente==="avie"?"calculée pour préserver le capital":(etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi")),
+    tuile("Rente mensuelle nette",F(rr.renteNette), etat.modeRente==="avie"?"calculée pour préserver le capital":(etat.modeRente==="duree"?"calculée pour la durée choisie":"montant choisi"),null,true),
     rr.aVie
       ? tuile("Servie","À vie","le capital n’est jamais épuisé","pos")
       : tuile("Servie jusqu’à",Math.round(pl.ageFin)+" ans","soit "+libDureeMois(rr.dureeMois)+" de rente"),
@@ -1127,8 +1181,10 @@ function dessinerCourbes(svg, W, C, etat, res, interactif){
   }
   const series=seriesActives(etat);
   const pts=res.points, M=pts.length-1;
+  const comps=(res===graphe.res&&Array.isArray(graphe.comp))?graphe.comp:[];
   let maxY=0;
   for(const p of pts) maxY=Math.max(maxY,p.verse||0,p.cap||0,p.percu||0);
+  for(const c of comps){ const n=Math.min(c.res.points.length-1,M); for(let t=0;t<=n;t++) maxY=Math.max(maxY,c.res.points[t].cap||0); }
   maxY*=1.04;
   const pas=pasArrondi(maxY/4);
   const yMax=Math.max(pas,Math.ceil(maxY/pas)*pas);
@@ -1173,6 +1229,16 @@ function dessinerCourbes(svg, W, C, etat, res, interactif){
     el("path",{d:chemin(s.cle),fill:"none",stroke:C[s.coul],"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
   }
   el("path",{d:chemin("cap"),fill:"none",stroke:C.capital,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
+  /* courbes de comparaison (capital), en pointillés */
+  for(const c of comps){
+    const n=Math.min(c.res.points.length-1,M);
+    let d="";
+    const saut=Math.max(1,Math.floor(n/1200));
+    for(let t=0;t<=n;t++){ if(t%saut!==0&&t!==n) continue; d+=(d?"L":"M")+X(t).toFixed(2)+" "+Y(c.res.points[t].cap||0).toFixed(2); }
+    el("path",{d,fill:"none",stroke:C[c.cle],"stroke-width":2,"stroke-dasharray":"5 4","stroke-linejoin":"round","stroke-linecap":"round"},svg);
+    el("circle",{cx:X(n),cy:Y(c.res.points[n].cap||0),r:6,fill:C.card},svg);
+    el("circle",{cx:X(n),cy:Y(c.res.points[n].cap||0),r:4,fill:C[c.cle]},svg);
+  }
 
   for(const s of series){
     el("circle",{cx:X(M),cy:Y(pts[M][s.cle]||0),r:6.5,fill:C.card},svg);
@@ -1181,7 +1247,10 @@ function dessinerCourbes(svg, W, C, etat, res, interactif){
 
   /* étiquettes de fin, écartées si collision */
   if(!etroit){
-    const etiqs=series.map(s=>({y:Y(pts[M][s.cle]||0), val:pts[M][s.cle]||0, nom:s.nom})).sort((a,b)=>a.y-b.y);
+    const etiqs=series.map(s=>({y:Y(pts[M][s.cle]||0), val:pts[M][s.cle]||0, nom:s.nom}))
+      .concat(comps.map(c=>{ const n=Math.min(c.res.points.length-1,M);
+        return {y:Y(c.res.points[n].cap||0), val:c.res.points[n].cap||0, nom:nomCourt(c.f)}; }))
+      .sort((a,b)=>a.y-b.y);
     for(let i=1;i<etiqs.length;i++) if(etiqs[i].y-etiqs[i-1].y<32) etiqs[i].y=etiqs[i-1].y+32;
     for(const q of etiqs){
       el("text",{x:X(M)+12,y:q.y-2,fill:C.ink,"font-size":"12.5","font-weight":"600"},svg).textContent=Fcourt(q.val).replace(/ /g," ");
@@ -1255,6 +1324,15 @@ function montrerInfobulle(t,xSvg,ySvg){
     const q=document.createElement("span");q.className="qui";q.textContent=s.nom;
     r.append(k,v,q);bulle.appendChild(r);
   }
+  for(const c of (graphe.comp||[])){
+    const n=c.res.points.length-1;
+    if(t>n) continue;
+    const r=document.createElement("div");r.className="rangee";
+    const k=document.createElement("span");k.className="cle-trait";k.style.borderColor=C[c.cle];k.style.borderTopStyle="dashed";
+    const v=document.createElement("span");v.className="valeur";v.textContent=F(c.res.points[t].cap||0);
+    const q=document.createElement("span");q.className="qui";q.textContent=nomCourt(c.f);
+    r.append(k,v,q);bulle.appendChild(r);
+  }
   const rect=svg.getBoundingClientRect(), zr=zone.getBoundingClientRect();
   const echelle=rect.width/graphe.largeur;
   let gauche=(rect.left-zr.left)+xSvg*echelle+14;
@@ -1272,6 +1350,12 @@ function majLegende(etat){
     const cle=document.createElement("span");cle.className="cle";
     const tr=document.createElement("span");tr.className="trait";tr.style.borderColor=C[s.coul];
     cle.append(tr,document.createTextNode(s.nom));
+    lg.appendChild(cle);
+  }
+  for(const c of (graphe.comp||[])){
+    const cle=document.createElement("span");cle.className="cle";
+    const tr=document.createElement("span");tr.className="trait pointille";tr.style.borderColor=C[c.cle];
+    cle.append(tr,document.createTextNode(nomCourt(c.f)));
     lg.appendChild(cle);
   }
 }
@@ -1312,6 +1396,95 @@ function majTableau(etat,res){
   }
 }
 
+/* ————————————————— Comparaison des supports ————————————————— */
+let comparaisonVisible=false;
+let comparaisonChoix=[];   /* index de FONDS, ordre = couleur (comp1, comp2) */
+function nomCourt(f){ return f.nom.replace(/^FCP\s+AGA\s+/,"").replace(/\s*\(indice\)\s*$/,""); }
+
+function reconstruirePuces(etat){
+  const zone=$("choix-comparaison"); zone.replaceChildren();
+  const intro=document.createElement("span"); intro.textContent="Comparer avec (deux au plus) :";
+  zone.appendChild(intro);
+  const C=couleurs();
+  FONDS.forEach((f,idx)=>{
+    if(f===etat.fonds) return;
+    const pos=comparaisonChoix.indexOf(idx);
+    const lab=document.createElement("label");
+    lab.className="puce-comp"+(pos>=0?" active":"");
+    const inp=document.createElement("input"); inp.type="checkbox"; inp.checked=pos>=0;
+    const cle=document.createElement("span"); cle.className="cle-comp";
+    if(pos>=0) cle.style.borderTopColor=C["comp"+(pos+1)];
+    lab.append(inp,cle,document.createTextNode(nomCourt(f)));
+    inp.addEventListener("change",()=>{
+      const p=comparaisonChoix.indexOf(idx);
+      if(p>=0) comparaisonChoix.splice(p,1);
+      else { comparaisonChoix.push(idx); if(comparaisonChoix.length>2) comparaisonChoix.shift(); }
+      recalculer();
+    });
+    zone.appendChild(lab);
+  });
+}
+
+function majComparaison(etat,res){
+  const carte=$("carte-comparaison");
+  carte.hidden=!comparaisonVisible;
+  comparaisonChoix=comparaisonChoix.filter(i=>FONDS[i]!==etat.fonds);
+  if(!comparaisonVisible||!res){ graphe.comp=[]; return; }
+  reconstruirePuces(etat);
+  graphe.comp=comparaisonChoix.map((idx,i)=>{
+    const f=FONDS[idx];
+    const e2=Object.assign({},etat,{fonds:f,r:rendementAnnualise(f).r,entree:f.entree,sortie:f.sortie});
+    return {f, cle:"comp"+(i+1), res:calculer(e2), etat:e2};
+  }).filter(c=>c.res);
+
+  const thead=$("tableau-comparaison").querySelector("thead");
+  const corps=$("tableau-comparaison").querySelector("tbody");
+  thead.replaceChildren(); corps.replaceChildren();
+  const colonnes=[{f:etat.fonds,res,etat,actuel:true}].concat(graphe.comp);
+  const tr=document.createElement("tr");
+  tr.appendChild(document.createElement("th"));
+  for(const c of colonnes){
+    const th=document.createElement("th"); th.scope="col";
+    th.textContent=nomCourt(c.f)+(c.actuel?" (actuel)":"");
+    tr.appendChild(th);
+  }
+  thead.appendChild(tr);
+  const ligne=(lib,valeurs,classes)=>{
+    const trl=document.createElement("tr");
+    const td0=document.createElement("td"); td0.textContent=lib; td0.style.fontWeight="600"; trl.appendChild(td0);
+    valeurs.forEach((v,i)=>{ const td=document.createElement("td"); td.textContent=v; if(classes&&classes[i]) td.className=classes[i]; trl.appendChild(td); });
+    corps.appendChild(trl);
+  };
+  ligne("Rendement annualisé observé",colonnes.map(c=>fmtPct.format(c.etat.r*100)+" %"));
+  ligne("Droits (entrée / sortie)",colonnes.map(c=>fmtPct.format(c.f.entree)+" % / "+fmtPct.format(c.f.sortie)+" %"));
+  if(etat.scenario==="epargne"){
+    ligne("Valeur au terme",colonnes.map(c=>F(c.res.net)));
+    ligne("Gain net",colonnes.map(c=>((c.res.net-c.res.totalVerse>=0?"+":"−")+F(Math.abs(c.res.net-c.res.totalVerse)))),
+      colonnes.map(c=>(c.res.net-c.res.totalVerse>=0?"gain":"perte")));
+  } else if(etat.scenario==="rente"){
+    ligne("Rente mensuelle nette",colonnes.map(c=>F(c.res.rente.renteNette)));
+    ligne("Servie pendant",colonnes.map(c=>c.res.rente.aVie?"À vie":libDureeMois(c.res.rente.dureeMois)));
+    ligne("Total perçu",colonnes.map(c=>c.res.rente.aVie?"— (capital préservé)":F(c.res.rente.totalPercu)));
+  } else {
+    ligne("Capital à la retraite",colonnes.map(c=>F(c.res.plan.capRetraite)));
+    ligne("Rente mensuelle nette",colonnes.map(c=>F(c.res.plan.rente.renteNette)));
+    ligne("Servie",colonnes.map(c=>c.res.plan.rente.aVie?"À vie":("jusqu’à "+Math.round(c.res.plan.ageFin)+" ans")));
+  }
+  $("note-comparaison").textContent=graphe.comp.length
+    ? "Chaque support est simulé avec vos paramètres et ses propres droits — les courbes en pointillés montrent leur capital sur le graphique."+(graphe.comp.some(c=>c.f.type==="indice")?" L’indice, sans frais, reste une référence théorique (dividendes non compris).":"")
+    : "Choisissez ci-dessus le ou les supports (deux au plus) à comparer avec le vôtre.";
+}
+$("btn-comparer").addEventListener("click",()=>{
+  comparaisonVisible=!comparaisonVisible;
+  $("btn-comparer").textContent=comparaisonVisible?"Masquer la comparaison":"Comparer les supports";
+  if(comparaisonVisible&&comparaisonChoix.length===0){
+    const autre=FONDS.findIndex(f=>f!==graphe.etat.fonds);
+    if(autre>=0) comparaisonChoix=[autre];
+  }
+  recalculer();
+  if(comparaisonVisible) $("carte-comparaison").scrollIntoView({behavior:"smooth",block:"nearest"});
+});
+
 /* ————————————————— Orchestration du simulateur ————————————————— */
 function recalculer(){
   const etat=lireEtat();
@@ -1323,6 +1496,7 @@ function recalculer(){
   graphe.etat=etat; graphe.res=res;
   majFiche(etat);
   majTuiles(etat,res);
+  majComparaison(etat,res);
   majLegende(etat);
   const titres={epargne:"Évolution de votre épargne",rente:"Votre rente et votre capital",plan:"Votre plan retraite"};
   $("titre-graphe").textContent=titres[etat.scenario];
