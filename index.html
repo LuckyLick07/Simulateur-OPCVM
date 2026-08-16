@@ -73,7 +73,9 @@
   .vue{display:none}
   .vue.active{display:block}
   .fil{max-width:1120px;margin:0 auto;padding:14px 20px 0;font-size:13px}
+  .fil{color:var(--muted)}
   .fil a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--baseline)}
+  .fil a[aria-current="page"]{color:var(--ink);font-weight:600;border-bottom-color:var(--serie-capital)}
   .fil a:hover{color:var(--ink)}
   .carte{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:20px 20px 18px}
   .titre-section{
@@ -272,7 +274,12 @@
   </div>
 </header>
 
-<nav class="fil" id="fil" hidden><a href="#accueil">← Accueil</a></nav>
+<nav class="fil" id="fil" hidden>
+  <a href="#accueil" data-vue="accueil">Accueil</a> ·
+  <a href="#comprendre" data-vue="comprendre">Comprendre</a> ·
+  <a href="#aide" data-vue="aide">Questions &amp; lexique</a> ·
+  <a href="#simulateur" data-vue="simulateur">Simulateur</a>
+</nav>
 
 <!-- ═══════════════ ACCUEIL ═══════════════ -->
 <section class="vue" id="vue-accueil">
@@ -389,34 +396,102 @@
       <li><strong>Suivez votre placement</strong> : la VL est publiée régulièrement. Pour récupérer tout ou partie de votre épargne, adressez une demande de rachat — le règlement intervient dans les délais prévus par la notice.</li>
     </ol>
 
-    <h3>Questions fréquentes</h3>
-    <details><summary>Puis-je perdre de l’argent ?</summary><p>Oui. La valeur liquidative peut baisser, et rien ne garantit les performances passées. Le risque se gère : un fonds adapté à son horizon, des versements réguliers, et du temps devant soi. Les simulations de cet outil restent des projections, pas des promesses.</p></details>
-    <details><summary>Mon argent est-il bloqué ?</summary><p>Non. Les FCP présentés ici sont « ouverts » : vous pouvez demander le rachat de vos parts à tout moment. Le règlement intervient dans les délais prévus par la notice du fonds, après d’éventuels droits de sortie.</p></details>
-    <details><summary>Combien faut-il pour commencer ?</summary><p>Chaque fonds fixe son minimum de souscription dans sa notice d’information. Beaucoup restent accessibles aux petits épargnants, et les versements programmés permettent de commencer modestement puis d’augmenter.</p></details>
-    <details><summary>Qui surveille les fonds ?</summary><p>L’AMF-UMOA, le régulateur du marché financier de l’union, agrée les sociétés de gestion, vise les notices d’information des fonds et contrôle l’ensemble des intervenants. Les textes applicables sont consultables sur textes-mfr-umoa.</p></details>
-    <details><summary>FCP, SICAV… quelle différence ?</summary><p>Ce sont les deux formes juridiques des OPCVM, les organismes de placement collectif. Le FCP est une copropriété de titres gérée par une société de gestion ; la SICAV est une société d’investissement. Pour l’épargnant, le fonctionnement au quotidien est très proche.</p></details>
-    <details><summary>Les chiffres du simulateur sont-ils garantis ?</summary><p>Non. Le simulateur projette le rendement annualisé constaté sur l’historique de chaque support, à taux constant — une convention pédagogique. Les marchés, eux, ne montent ni ne baissent en ligne droite.</p></details>
+    <p style="margin-top:26px">Une question précise, un mot qui vous échappe&nbsp;? Les réponses courtes et toutes les définitions sont réunies dans l’onglet dédié.</p>
 
-    <h3>Lexique</h3>
+    <div class="suite">
+      <button type="button" class="bouton-second" id="comprendre-vers-aide">Questions fréquentes &amp; lexique</button>
+
+      <button type="button" class="bouton" id="comprendre-vers-guide">Me laisser guider</button>
+      <button type="button" class="bouton-second" id="comprendre-vers-simulateur">Simuler librement</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ QUESTIONS & LEXIQUE ═══════════════ -->
+<section class="vue" id="vue-aide">
+  <div class="contenu comprendre">
+    <h2>Questions fréquentes &amp; lexique</h2>
+    <p>Les réponses courtes aux questions qui reviennent, puis les définitions de tous les termes employés sur ce site. Pour l’explication d’ensemble, lisez d’abord <a href="#comprendre">Comprendre les fonds communs de placement</a>.</p>
+
+    <h3>Avant de commencer</h3>
+    <details><summary>Puis-je perdre de l’argent ?</summary><p>Oui. La valeur liquidative peut baisser, et rien ne garantit les performances passées. Le risque se gère&nbsp;: un fonds adapté à son horizon, des versements réguliers, et du temps devant soi. Les simulations de cet outil restent des projections, pas des promesses.</p></details>
+    <details><summary>Mon argent est-il bloqué ?</summary><p>Non. Les FCP présentés ici sont «&nbsp;ouverts&nbsp;»&nbsp;: vous pouvez demander le rachat de vos parts à tout moment. Le règlement intervient dans les délais prévus par la notice du fonds, après d’éventuels droits de sortie.</p></details>
+    <details><summary>Combien faut-il pour commencer ?</summary><p>Chaque fonds fixe son minimum de souscription dans sa notice d’information. Beaucoup restent accessibles aux petits épargnants, et les versements programmés permettent de commencer modestement puis d’augmenter.</p></details>
+    <details><summary>Quelle différence entre un FCP et un compte d’épargne ?</summary><p>Le compte d’épargne offre un taux connu d’avance et un capital garanti par la banque, mais généralement modeste. Le FCP vise mieux en plaçant sur les marchés — sans garantie&nbsp;: sa valeur fluctue. L’un sécurise, l’autre fait travailler&nbsp;; beaucoup d’épargnants combinent les deux.</p></details>
+    <details><summary>FCP, SICAV… quelle différence ?</summary><p>Ce sont les deux formes juridiques des OPCVM. Le FCP est une copropriété de titres gérée par une société de gestion&nbsp;; la SICAV est une société d’investissement. Pour l’épargnant, le fonctionnement au quotidien est très proche.</p></details>
+    <details><summary>Qui surveille les fonds ?</summary><p>L’AMF-UMOA, le régulateur du marché financier régional, agrée les sociétés de gestion, vise les notices d’information et contrôle les intervenants. Les textes applicables sont réunis sur <a href="https://textes.malickamadou.com/">textes-mfr-umoa</a>.</p></details>
+
+    <h3>Comprendre le marché</h3>
+    <details><summary>C’est quoi, la BRVM ?</summary><p>La Bourse régionale des valeurs mobilières, commune aux huit pays de l’UMOA et installée à Abidjan. C’est là que s’échangent les actions et obligations des entreprises et États de la région — et c’est sur ces titres que les fonds placent une partie de votre épargne.</p></details>
+    <details><summary>Qu’est-ce qu’un indice boursier ?</summary><p>Un thermomètre du marché&nbsp;: un chiffre calculé à partir des cours d’un panier de titres. Quand l’indice monte, le marché monte en moyenne. Il sert à mesurer et comparer — pas à investir directement.</p></details>
+    <details><summary>Et le BRVM Composite, précisément ?</summary><p>L’indice qui suit l’ensemble des actions cotées à la BRVM&nbsp;: c’est le baromètre le plus large du marché régional. Le simulateur utilise son historique comme référence théorique — en gardant en tête qu’il ne compte pas les dividendes et qu’on ne l’achète pas directement.</p></details>
+    <details><summary>Pourquoi ne puis-je pas investir «&nbsp;dans l’indice&nbsp;» ?</summary><p>Parce qu’un indice est un calcul, pas un produit&nbsp;: personne ne vend de «&nbsp;parts de BRVM Composite&nbsp;». On peut s’en approcher en achetant les titres qui le composent ou via des fonds investis en actions — la simulation sur l’indice reste donc théorique.</p></details>
+    <details><summary>D’où viennent les rendements affichés ?</summary><p>Des historiques réels&nbsp;: valeurs liquidatives publiées pour les fonds, cotations officielles pour l’indice. Le simulateur en tire un rendement annualisé sur la période indiquée, puis projette à ce rythme constant — une convention pédagogique, pas une prévision.</p></details>
+    <details><summary>Les dividendes sont-ils pris en compte ?</summary><p>Dans les fonds, oui&nbsp;: dividendes et intérêts encaissés par le portefeuille se retrouvent dans la valeur liquidative, nets de frais de gestion. Dans l’indice BRVM Composite, non&nbsp;: c’est un indice de prix, qui sous-estime donc ce qu’aurait réellement rapporté le marché dividendes compris.</p></details>
+
+    <h3>Le simulateur</h3>
+    <details><summary>Les chiffres affichés sont-ils garantis ?</summary><p>Non. Les marchés ne montent ni ne baissent en ligne droite&nbsp;: la projection à taux constant sert à comparer des ordres de grandeur et des scénarios, pas à prédire votre relevé de compte.</p></details>
+    <details><summary>Comment lire le graphique ?</summary><p>La courbe ambre cumule ce que vous versez, la courbe verte montre ce que vaut votre capital, et la courbe bleue — quand une rente est servie — cumule ce que vous avez perçu. L’écart entre ambre et vert, ce sont les rendements.</p></details>
+    <details><summary>Pourquoi ma rente s’arrête — ou dure «&nbsp;à vie&nbsp;» ?</summary><p>Chaque retrait entame le capital, que les rendements reconstituent en partie. Si le retrait dépasse ce que le capital produit, celui-ci s’épuise à une date que le simulateur calcule. S’il reste en dessous, le capital n’est jamais entamé&nbsp;: la rente peut durer indéfiniment.</p></details>
+    <details><summary>Et l’inflation dans tout ça ?</summary><p>Le simulateur raisonne en francs d’aujourd’hui et sert des rentes constantes&nbsp;: il ne tient pas compte de l’inflation, qui érode le pouvoir d’achat sur les longues durées. Un point à garder en tête pour les projections à vingt ou trente ans.</p></details>
+    <details><summary>Mon adresse e-mail est-elle conservée ?</summary><p>Non. L’adresse saisie sert uniquement à l’envoi du résumé demandé&nbsp;; elle n’est ni enregistrée par le site, ni réutilisée, ni partagée.</p></details>
+
+    <h3 id="lexique">Lexique</h3>
+
+    <p style="margin-bottom:2px;font-weight:600;color:var(--ink)">Les placements collectifs</p>
     <dl class="lexique">
       <dt>OPCVM</dt><dd>Organisme de placement collectif en valeurs mobilières — la famille qui regroupe FCP et SICAV.</dd>
       <dt>FCP — fonds commun de placement</dt><dd>Épargne collective en copropriété, gérée par une société de gestion agréée.</dd>
-      <dt>VL — valeur liquidative</dt><dd>Le « prix » d’une part du fonds : valeur du portefeuille divisée par le nombre de parts, publiée régulièrement.</dd>
+      <dt>SICAV</dt><dd>Société d’investissement à capital variable — l’autre forme d’OPCVM, constituée en société.</dd>
+      <dt>Part</dt><dd>L’unité de propriété d’un FCP. Souscrire, c’est acheter des parts&nbsp;; leur prix est la VL.</dd>
       <dt>Société de gestion (SGO)</dt><dd>La société agréée qui gère le portefeuille du fonds pour le compte des épargnants.</dd>
       <dt>SGI</dt><dd>Société de gestion et d’intermédiation — l’intermédiaire de bourse agréé, qui peut aussi distribuer des fonds.</dd>
-      <dt>Droits d’entrée</dt><dd>Frais prélevés sur chaque versement au moment de la souscription.</dd>
-      <dt>Droits de sortie</dt><dd>Frais prélevés, quand ils existent, au moment du rachat des parts.</dd>
-      <dt>Frais de gestion</dt><dd>Rémunération annuelle de la société de gestion, déjà déduite de la VL publiée.</dd>
-      <dt>Capitalisation</dt><dd>Les revenus du portefeuille restent investis dans le fonds et font grossir la VL.</dd>
-      <dt>Rente</dt><dd>Somme retirée à intervalle régulier d’un capital placé — jusqu’à épuisement, ou « à vie » si les retraits restent couverts par les rendements.</dd>
-      <dt>Indice boursier</dt><dd>Baromètre d’un marché (comme le BRVM Composite). Il sert de référence mais ne s’achète pas directement.</dd>
-      <dt>Notice d’information</dt><dd>Le document officiel du fonds, visé par le régulateur : objectif, frais, risques, modalités de souscription et de rachat.</dd>
+      <dt>Notice d’information</dt><dd>Le document officiel du fonds, visé par le régulateur&nbsp;: objectif, frais, risques, modalités de souscription et de rachat.</dd>
       <dt>AMF-UMOA</dt><dd>L’Autorité des marchés financiers de l’UMOA — le régulateur régional qui agrée et surveille les intervenants.</dd>
     </dl>
 
+    <p style="margin:16px 0 2px;font-weight:600;color:var(--ink)">La vie de votre épargne</p>
+    <dl class="lexique">
+      <dt>Souscription</dt><dd>L’achat de parts d’un fonds — à l’entrée ou par versements réguliers.</dd>
+      <dt>Rachat</dt><dd>La revente de vos parts au fonds pour récupérer votre argent, au prix de la VL du moment.</dd>
+      <dt>VL — valeur liquidative</dt><dd>Le «&nbsp;prix&nbsp;» d’une part&nbsp;: valeur du portefeuille divisée par le nombre de parts, publiée régulièrement.</dd>
+      <dt>Capitalisation</dt><dd>Les revenus du portefeuille restent investis dans le fonds et font grossir la VL.</dd>
+      <dt>Distribution</dt><dd>À l’inverse, certains fonds reversent périodiquement les revenus aux porteurs de parts.</dd>
+      <dt>Intérêts composés</dt><dd>Les gains produisent à leur tour des gains&nbsp;: c’est ce qui fait accélérer une épargne avec le temps — le moteur silencieux de toutes les simulations de ce site.</dd>
+      <dt>Horizon de placement</dt><dd>La durée pendant laquelle vous pouvez laisser votre argent investi. Plus il est long, mieux les fluctuations se lissent.</dd>
+      <dt>Versements programmés</dt><dd>Épargner une somme fixe à intervalle régulier — la méthode la plus simple pour lisser les hauts et les bas du marché.</dd>
+    </dl>
+
+    <p style="margin:16px 0 2px;font-weight:600;color:var(--ink)">Les frais</p>
+    <dl class="lexique">
+      <dt>Droits d’entrée</dt><dd>Frais prélevés sur chaque versement au moment de la souscription.</dd>
+      <dt>Droits de sortie</dt><dd>Frais prélevés, quand ils existent, au moment du rachat des parts.</dd>
+      <dt>Frais de gestion</dt><dd>Rémunération annuelle de la société de gestion, déjà déduite de la VL publiée.</dd>
+    </dl>
+
+    <p style="margin:16px 0 2px;font-weight:600;color:var(--ink)">La bourse régionale</p>
+    <dl class="lexique">
+      <dt>BRVM</dt><dd>La Bourse régionale des valeurs mobilières, commune aux huit pays de l’UMOA, installée à Abidjan.</dd>
+      <dt>Action</dt><dd>Une fraction du capital d’une entreprise. Sa valeur fluctue&nbsp;; elle peut verser un dividende.</dd>
+      <dt>Obligation</dt><dd>Un prêt à une entreprise ou à un État, remboursé avec intérêts — plus régulier, moins spectaculaire que l’action.</dd>
+      <dt>Titres publics</dt><dd>Les emprunts émis par les États de l’union (bons et obligations du Trésor) — socle des fonds prudents.</dd>
+      <dt>Dividende</dt><dd>La part des bénéfices qu’une entreprise verse à ses actionnaires.</dd>
+      <dt>Indice boursier</dt><dd>Le baromètre d’un marché, calculé à partir d’un panier de titres. Il se mesure, il ne s’achète pas.</dd>
+      <dt>BRVM Composite</dt><dd>L’indice de l’ensemble des actions cotées à la BRVM — le baromètre le plus large du marché régional, utilisé ici comme référence théorique (dividendes non compris).</dd>
+    </dl>
+
+    <p style="margin:16px 0 2px;font-weight:600;color:var(--ink)">Les notions de la simulation</p>
+    <dl class="lexique">
+      <dt>Rendement annualisé</dt><dd>Le rythme moyen de progression par an constaté sur une période — la vitesse de croisière calculée depuis l’historique.</dd>
+      <dt>Volatilité</dt><dd>L’ampleur des à-coups autour de cette moyenne. Deux placements au même rendement peuvent vivre des trajets très différents.</dd>
+      <dt>Rente</dt><dd>Somme retirée à intervalle régulier d’un capital placé — jusqu’à épuisement, ou «&nbsp;à vie&nbsp;» si les retraits restent couverts par les rendements.</dd>
+      <dt>Diversification</dt><dd>Répartir son épargne entre plusieurs supports pour ne pas dépendre d’un seul — le premier réflexe de prudence.</dd>
+      <dt>Inflation</dt><dd>La hausse générale des prix, qui érode le pouvoir d’achat — non prise en compte dans les projections du simulateur.</dd>
+    </dl>
+
     <div class="suite">
-      <button type="button" class="bouton" id="comprendre-vers-guide">Me laisser guider</button>
-      <button type="button" class="bouton-second" id="comprendre-vers-simulateur">Simuler librement</button>
+      <button type="button" class="bouton-second" id="aide-vers-comprendre">Lire le guide « Comprendre »</button>
+      <button type="button" class="bouton" id="aide-vers-simulateur">Ouvrir le simulateur</button>
     </div>
   </div>
 </section>
@@ -958,7 +1033,10 @@ function majFiche(etat){
   }
   if(estIndice){
     const nbi=document.createElement("div"); nbi.className="periode";
-    nbi.textContent="Indice de référence : il n’est pas directement investissable et les dividendes ne sont pas pris en compte (indice de prix) — simulation théorique.";
+    nbi.textContent="Indice de référence : il n’est pas directement investissable et les dividendes ne sont pas pris en compte (indice de prix) — simulation théorique. ";
+    const lienIdx=document.createElement("a"); lienIdx.href="#aide"; lienIdx.className="lien-doux";
+    lienIdx.textContent="Qu’est-ce qu’un indice ?";
+    nbi.appendChild(lienIdx);
     el.appendChild(nbi);
   }
   if(etat.annees_obs<1){
@@ -1445,18 +1523,25 @@ function montrerVue(nom){
   for(const v of document.querySelectorAll(".vue")) v.classList.remove("active");
   $("vue-"+nom).classList.add("active");
   $("fil").hidden=(nom==="accueil");
+  for(const a of document.querySelectorAll("#fil a")){
+    if(a.dataset.vue===nom) a.setAttribute("aria-current","page");
+    else a.removeAttribute("aria-current");
+  }
   if(location.hash!=="#"+nom){ try{ history.replaceState(null,"","#"+nom);}catch(e){} }
   if(nom==="simulateur") dessinerGraphe();
 }
 function vueDepuisHash(){
   const h=(location.hash||"#accueil").slice(1);
-  montrerVue(["accueil","comprendre","guide","simulateur"].includes(h)?h:"accueil");
+  montrerVue(["accueil","comprendre","aide","guide","simulateur"].includes(h)?h:"accueil");
 }
 window.addEventListener("hashchange",vueDepuisHash);
 $("porte-comprendre").addEventListener("click",()=>{montrerVue("comprendre");window.scrollTo(0,0);});
 $("porte-guide").addEventListener("click",()=>montrerVue("guide"));
 $("porte-libre").addEventListener("click",()=>montrerVue("simulateur"));
 $("comprendre-vers-guide").addEventListener("click",()=>montrerVue("guide"));
+$("comprendre-vers-aide").addEventListener("click",()=>{montrerVue("aide");window.scrollTo(0,0);});
+$("aide-vers-comprendre").addEventListener("click",()=>{montrerVue("comprendre");window.scrollTo(0,0);});
+$("aide-vers-simulateur").addEventListener("click",()=>montrerVue("simulateur"));
 $("comprendre-vers-simulateur").addEventListener("click",()=>montrerVue("simulateur"));
 
 /* ————————————————— Exemples à un clic ————————————————— */
