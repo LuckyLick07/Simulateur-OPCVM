@@ -96,7 +96,7 @@
   .accueil-intro{max-width:64ch;margin:6px 0 22px}
   .accueil-intro h2{font-size:24px;margin:0 0 8px}
   .accueil-intro p{color:var(--ink-2);margin:0}
-  .portes{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .portes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
   @media (max-width:760px){ .portes{grid-template-columns:1fr} }
   .porte{
     text-align:left;background:var(--card);border:1px solid var(--hairline);border-radius:3px;
@@ -109,6 +109,41 @@
   .porte p{margin:0;color:var(--ink-2);font-size:14px}
   .porte .appel{display:inline-block;margin-top:14px;font-weight:600;color:var(--gain);font-size:14px;border-bottom:1px solid var(--gain)}
   .accueil-note{margin:20px 2px 0;font-size:12.5px;color:var(--muted)}
+  .exemples-liste{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  @media (max-width:760px){ .exemples-liste{grid-template-columns:1fr} }
+  .exemple{
+    text-align:left;background:var(--card);border:1px solid var(--hairline);border-radius:3px;
+    padding:14px 16px 12px;cursor:pointer;font:inherit;color:var(--ink);
+  }
+  .exemple:hover{border-color:var(--serie-capital)}
+  .exemple:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .exemple .qui{font-weight:600}
+  .exemple .quoi{color:var(--ink-2);font-size:13px;margin-top:2px}
+  .exemple .appel{display:inline-block;margin-top:8px;font-size:12.5px;color:var(--gain);border-bottom:1px solid var(--gain)}
+
+  /* ————— Page Comprendre ————— */
+  .comprendre{max-width:76ch}
+  .comprendre h2{font-size:23px;margin:0 0 10px}
+  .comprendre h3{font-size:17px;margin:26px 0 6px}
+  .comprendre p,.comprendre li{color:var(--ink-2);font-size:14.5px}
+  .comprendre p strong,.comprendre li strong{color:var(--ink)}
+  .comprendre ol{padding-left:20px}
+  .comprendre ol li{margin:8px 0}
+  .schema-fcp{margin:14px 0 4px;border:1px solid var(--hairline);border-radius:3px;background:var(--card);padding:14px}
+  .schema-fcp svg{display:block;width:100%;height:auto}
+  .comprendre details{border-top:1px solid var(--grid)}
+  .comprendre details:last-of-type{border-bottom:1px solid var(--grid)}
+  .comprendre summary{cursor:pointer;font-weight:600;font-size:14.5px;color:var(--ink);padding:10px 0}
+  .comprendre details p{margin:2px 0 12px}
+  dl.lexique dt{font-weight:600;margin-top:11px;font-size:14.5px}
+  dl.lexique dd{margin:1px 0 0;color:var(--ink-2);font-size:14px}
+  .comprendre .suite{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
+  .lien-doux{font-size:12px;color:var(--ink-2)}
+
+  /* ————— Phrase de synthèse ————— */
+  .phrase-resultat{background:var(--card);border:1px solid var(--hairline);border-radius:3px;padding:13px 16px 12px}
+  .phrase-resultat .lead{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:600;margin-bottom:4px}
+  .phrase-resultat p{margin:0;font-size:14.5px;color:var(--ink-2)}
 
   /* ————— Parcours guidé ————— */
   .guide-grille{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
@@ -233,7 +268,7 @@
   <div class="bandeau-int">
     <h1><a href="#accueil">Simulateur OPCVM</a></h1>
     <p class="sous-titre">Projetez votre épargne en fonds communs de placement de l’UMOA</p>
-    <span class="etiquette" id="etiquette-vl">Version 2</span>
+    <span class="etiquette" id="etiquette-vl">Version 3</span>
   </div>
 </header>
 
@@ -247,8 +282,14 @@
       <p>Épargne régulière, rente tirée d’un capital, ou plan retraite complet&nbsp;: les projections s’appuient sur l’historique réel des valeurs liquidatives des fonds.</p>
     </div>
     <div class="portes">
+      <button type="button" class="porte" id="porte-comprendre">
+        <span class="num">Je débute</span>
+        <h3>Comprendre d’abord</h3>
+        <p>Qu’est-ce qu’un fonds commun de placement, comment votre argent travaille, ce que coûtent les frais, comment souscrire — expliqué simplement, schéma à l’appui.</p>
+        <span class="appel">Lire le guide →</span>
+      </button>
       <button type="button" class="porte" id="porte-guide">
-        <span class="num">Première visite</span>
+        <span class="num">Je me laisse guider</span>
         <h3>Me laisser guider</h3>
         <p>Décrivez votre projet en quelques réponses — âge, capacité d’épargne, objectif. Le simulateur vous propose le fonds et le type de simulation qui correspondent, en expliquant pourquoi.</p>
         <span class="appel">Commencer →</span>
@@ -260,7 +301,123 @@
         <span class="appel">Ouvrir le simulateur →</span>
       </button>
     </div>
+    <h3 class="titre-section" style="margin-top:28px">Ou partez d’un exemple</h3>
+    <div class="exemples-liste">
+      <button type="button" class="exemple" data-exemple="0">
+        <div class="qui">Aminata, 28 ans</div>
+        <div class="quoi">épargne 25 000 F chaque mois pendant 10 ans</div>
+        <span class="appel">Voir la simulation →</span>
+      </button>
+      <button type="button" class="exemple" data-exemple="1">
+        <div class="qui">Moussa, 40 ans</div>
+        <div class="quoi">prépare sa retraite à 60 ans — 50 000 F par mois, puis une rente à vie</div>
+        <span class="appel">Voir la simulation →</span>
+      </button>
+      <button type="button" class="exemple" data-exemple="2">
+        <div class="qui">Awa, 55 ans</div>
+        <div class="quoi">place 30 millions et souhaite une rente de 250 000 F par mois</div>
+        <span class="appel">Voir la simulation →</span>
+      </button>
+    </div>
     <p class="accueil-note" id="note-accueil"></p>
+  </div>
+</section>
+
+<!-- ═══════════════ COMPRENDRE ═══════════════ -->
+<section class="vue" id="vue-comprendre">
+  <div class="contenu comprendre">
+    <h2>Comprendre les fonds communs de placement</h2>
+    <p>Un <strong>fonds commun de placement (FCP)</strong> est une épargne mise en commun. Des dizaines ou des milliers d’épargnants versent chacun leur part ; une <strong>société de gestion agréée</strong> place l’ensemble sur les marchés financiers — obligations, actions, titres publics — selon une politique annoncée à l’avance. Chacun possède des <strong>parts</strong> du fonds, à hauteur de ce qu’il a versé.</p>
+
+    <div class="schema-fcp" role="img" aria-label="Schéma : les épargnants souscrivent des parts du fonds ; la société de gestion place l’argent en portefeuille ; la valeur du portefeuille divisée par le nombre de parts donne la valeur liquidative.">
+      <svg viewBox="0 0 720 210" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g fill="none" stroke="var(--baseline)" stroke-width="1.2">
+          <rect x="12" y="52" width="150" height="76" rx="2"/>
+          <rect x="285" y="52" width="150" height="76" rx="2"/>
+          <rect x="558" y="52" width="150" height="76" rx="2"/>
+        </g>
+        <g fill="var(--ink)" font-family="system-ui,sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">
+          <text x="87" y="78">Les épargnants</text>
+          <text x="360" y="78">Le fonds (FCP)</text>
+          <text x="633" y="78">Le portefeuille</text>
+        </g>
+        <g fill="var(--ink-2)" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">
+          <text x="87" y="96">chacun détient</text>
+          <text x="87" y="110">des parts</text>
+          <text x="360" y="96">géré par une société</text>
+          <text x="360" y="110">de gestion agréée</text>
+          <text x="633" y="96">actions, obligations,</text>
+          <text x="633" y="110">titres publics</text>
+        </g>
+        <g stroke="var(--serie-verse)" stroke-width="1.6" fill="none">
+          <path d="M164 74 L281 74"/><path d="M276 70 L283 74 L276 78"/>
+        </g>
+        <g stroke="var(--serie-capital)" stroke-width="1.6" fill="none">
+          <path d="M281 104 L166 104"/><path d="M171 100 L164 104 L171 108"/>
+          <path d="M437 90 L554 90"/><path d="M549 86 L556 90 L549 94"/>
+        </g>
+        <g fill="var(--ink-2)" font-family="system-ui,sans-serif" font-size="10.5" text-anchor="middle">
+          <text x="222" y="64">souscriptions</text>
+          <text x="222" y="120">rachats</text>
+          <text x="495" y="80">placements</text>
+        </g>
+        <g stroke="var(--grid)" stroke-width="1"><path d="M360 128 L360 158"/></g>
+        <g fill="var(--ink)" font-family="system-ui,sans-serif" font-size="12" text-anchor="middle">
+          <text x="360" y="176" font-weight="600">valeur du portefeuille ÷ nombre de parts = VL</text>
+        </g>
+        <g fill="var(--ink-2)" font-family="system-ui,sans-serif" font-size="10.5" text-anchor="middle">
+          <text x="360" y="193">la valeur liquidative — le « prix » d’une part, publié régulièrement</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>Comment votre argent gagne — ou perd — de la valeur</h3>
+    <p>Quand vous souscrivez, votre versement achète des parts au prix du jour : la <strong>valeur liquidative (VL)</strong>. Si la gestion porte ses fruits, la valeur du portefeuille monte, la VL aussi, et vos parts valent davantage. L’inverse est possible : la VL peut baisser. Vous gagnez ou perdez la différence entre la VL du jour où vous sortez et celle du jour où vous êtes entré — c’est exactement ce que simule cet outil, à partir des VL réellement observées.</p>
+
+    <h3>Ce que coûtent les frais</h3>
+    <p>Trois frais à connaître, tous annoncés dans la notice du fonds. Les <strong>droits d’entrée</strong> sont prélevés sur chaque versement (verser 100 000 F avec 1 % de droits, c’est investir 99 000 F). Les <strong>frais de gestion</strong> rémunèrent la société de gestion ; vous ne les voyez jamais passer, car ils sont déjà déduits de la VL publiée. Les <strong>droits de sortie</strong>, quand ils existent, s’appliquent aux rachats. Le simulateur les intègre tous, et affiche leur coût cumulé.</p>
+
+    <h3>Le risque, dit simplement</h3>
+    <p>Un FCP n’est pas un compte d’épargne : sa valeur fluctue. Plus le fonds vise haut (actions), plus les à-coups sont marqués ; plus il est prudent (obligations, titres publics), plus la progression est régulière. La règle d’or : <strong>n’investir dans un support fluctuant que l’argent dont on n’aura pas besoin à court terme</strong>, et laisser le temps lisser les à-coups. Dans le simulateur, chaque fonds affiche ses variations réellement observées — y compris, concrètement, ce que 100 000 F placés sur un an sont devenus dans le meilleur et le pire des cas.</p>
+
+    <h3>Comment souscrire, concrètement</h3>
+    <ol>
+      <li><strong>Choisissez le fonds</strong> et lisez sa notice d’information — le document officiel qui décrit l’objectif, les frais et les risques. Les textes qui encadrent tout cela sont réunis sur <a href="https://textes.malickamadou.com/">textes-mfr-umoa</a>.</li>
+      <li><strong>Vérifiez l’agrément</strong> : la société de gestion et le fonds doivent figurer sur les listes officielles de l’<a href="https://www.amf-umoa.org/">AMF-UMOA</a>, le régulateur du marché financier régional.</li>
+      <li><strong>Rapprochez-vous de la société de gestion</strong> (SGO) ou d’un placeur agréé — SGI, banques partenaires — en agence ou en ligne selon les acteurs.</li>
+      <li><strong>Remplissez le bulletin de souscription</strong> avec une pièce d’identité et les justificatifs demandés, puis effectuez votre versement. Chaque fonds fixe son montant minimum dans sa notice — souvent accessible, et des versements réguliers sont généralement possibles.</li>
+      <li><strong>Suivez votre placement</strong> : la VL est publiée régulièrement. Pour récupérer tout ou partie de votre épargne, adressez une demande de rachat — le règlement intervient dans les délais prévus par la notice.</li>
+    </ol>
+
+    <h3>Questions fréquentes</h3>
+    <details><summary>Puis-je perdre de l’argent ?</summary><p>Oui. La valeur liquidative peut baisser, et rien ne garantit les performances passées. Le risque se gère : un fonds adapté à son horizon, des versements réguliers, et du temps devant soi. Les simulations de cet outil restent des projections, pas des promesses.</p></details>
+    <details><summary>Mon argent est-il bloqué ?</summary><p>Non. Les FCP présentés ici sont « ouverts » : vous pouvez demander le rachat de vos parts à tout moment. Le règlement intervient dans les délais prévus par la notice du fonds, après d’éventuels droits de sortie.</p></details>
+    <details><summary>Combien faut-il pour commencer ?</summary><p>Chaque fonds fixe son minimum de souscription dans sa notice d’information. Beaucoup restent accessibles aux petits épargnants, et les versements programmés permettent de commencer modestement puis d’augmenter.</p></details>
+    <details><summary>Qui surveille les fonds ?</summary><p>L’AMF-UMOA, le régulateur du marché financier de l’union, agrée les sociétés de gestion, vise les notices d’information des fonds et contrôle l’ensemble des intervenants. Les textes applicables sont consultables sur textes-mfr-umoa.</p></details>
+    <details><summary>FCP, SICAV… quelle différence ?</summary><p>Ce sont les deux formes juridiques des OPCVM, les organismes de placement collectif. Le FCP est une copropriété de titres gérée par une société de gestion ; la SICAV est une société d’investissement. Pour l’épargnant, le fonctionnement au quotidien est très proche.</p></details>
+    <details><summary>Les chiffres du simulateur sont-ils garantis ?</summary><p>Non. Le simulateur projette le rendement annualisé constaté sur l’historique de chaque support, à taux constant — une convention pédagogique. Les marchés, eux, ne montent ni ne baissent en ligne droite.</p></details>
+
+    <h3>Lexique</h3>
+    <dl class="lexique">
+      <dt>OPCVM</dt><dd>Organisme de placement collectif en valeurs mobilières — la famille qui regroupe FCP et SICAV.</dd>
+      <dt>FCP — fonds commun de placement</dt><dd>Épargne collective en copropriété, gérée par une société de gestion agréée.</dd>
+      <dt>VL — valeur liquidative</dt><dd>Le « prix » d’une part du fonds : valeur du portefeuille divisée par le nombre de parts, publiée régulièrement.</dd>
+      <dt>Société de gestion (SGO)</dt><dd>La société agréée qui gère le portefeuille du fonds pour le compte des épargnants.</dd>
+      <dt>SGI</dt><dd>Société de gestion et d’intermédiation — l’intermédiaire de bourse agréé, qui peut aussi distribuer des fonds.</dd>
+      <dt>Droits d’entrée</dt><dd>Frais prélevés sur chaque versement au moment de la souscription.</dd>
+      <dt>Droits de sortie</dt><dd>Frais prélevés, quand ils existent, au moment du rachat des parts.</dd>
+      <dt>Frais de gestion</dt><dd>Rémunération annuelle de la société de gestion, déjà déduite de la VL publiée.</dd>
+      <dt>Capitalisation</dt><dd>Les revenus du portefeuille restent investis dans le fonds et font grossir la VL.</dd>
+      <dt>Rente</dt><dd>Somme retirée à intervalle régulier d’un capital placé — jusqu’à épuisement, ou « à vie » si les retraits restent couverts par les rendements.</dd>
+      <dt>Indice boursier</dt><dd>Baromètre d’un marché (comme le BRVM Composite). Il sert de référence mais ne s’achète pas directement.</dd>
+      <dt>Notice d’information</dt><dd>Le document officiel du fonds, visé par le régulateur : objectif, frais, risques, modalités de souscription et de rachat.</dd>
+      <dt>AMF-UMOA</dt><dd>L’Autorité des marchés financiers de l’UMOA — le régulateur régional qui agrée et surveille les intervenants.</dd>
+    </dl>
+
+    <div class="suite">
+      <button type="button" class="bouton" id="comprendre-vers-guide">Me laisser guider</button>
+      <button type="button" class="bouton-second" id="comprendre-vers-simulateur">Simuler librement</button>
+    </div>
   </div>
 </section>
 
@@ -463,7 +620,7 @@
               <span class="suffixe"><input type="number" id="sortie" min="0" max="10" step="0.05" value="0"><span class="unite">%</span></span>
             </label>
           </div>
-          <p class="note-frais">Frais de gestion déjà reflétés dans les valeurs liquidatives. Les droits de sortie s’appliquent à chaque retrait de rente.</p>
+          <p class="note-frais">Frais de gestion déjà reflétés dans les valeurs liquidatives. Les droits de sortie s’appliquent à chaque retrait de rente. <a class="lien-doux" href="#comprendre">Que sont ces frais&nbsp;?</a></p>
         </fieldset>
         <div class="erreur" id="s-erreur"></div>
       </form>
@@ -471,6 +628,11 @@
 
     <div class="colonne-resultats">
       <div class="tuiles" id="tuiles" aria-live="polite"></div>
+
+      <div class="phrase-resultat" id="phrase-resultat" hidden>
+        <div class="lead">En clair</div>
+        <p id="phrase-texte"></p>
+      </div>
 
       <section class="carte" aria-labelledby="titre-graphe">
         <div class="entete-graphe">
@@ -522,7 +684,7 @@
 
 <footer>
   <div class="int">
-    <span>Simulateur OPCVM — version 2, août 2026</span>
+    <span>Simulateur OPCVM — version 3, août 2026</span>
     <span>Textes de référence du marché financier&nbsp;: <a href="https://textes.malickamadou.com/">textes-mfr-umoa</a></span>
   </div>
 </footer>
@@ -753,6 +915,22 @@ function ligneSVG(valeurs,w,h){
   for(let i=0;i<valeurs.length;i+=pas) d+=(d?"L":"M")+x(i).toFixed(1)+" "+y(valeurs[i]).toFixed(1);
   return d;
 }
+const cacheExtremes={};
+function extremesAnnuels(f){
+  if(cacheExtremes[f.id]) return cacheExtremes[f.id];
+  const ms=f.labels.map(l=>dateISO(l).getTime());
+  const AN=364*86400000;
+  let pire=Infinity, mieux=-Infinity, j=0;
+  for(let i=0;i<ms.length;i++){
+    while(j<ms.length&&ms[j]<ms[i]+AN) j++;
+    if(j>=ms.length) break;
+    const ratio=f.vl[j]/f.vl[i];
+    if(ratio<pire) pire=ratio;
+    if(ratio>mieux) mieux=ratio;
+  }
+  const ok=isFinite(pire)&&mieux>0;
+  return cacheExtremes[f.id]=ok?{pire,mieux}:null;
+}
 function majFiche(etat){
   const f=etat.fonds, el=$("fiche-fonds");
   el.replaceChildren();
@@ -772,6 +950,12 @@ function majFiche(etat){
   p.setAttribute("stroke","currentColor");p.setAttribute("stroke-width","1.5");
   svg.appendChild(p);
   el.append(rdt,rdtVal,per,vol,svg);
+  const ext=extremesAnnuels(f);
+  if(ext){
+    const cc=document.createElement("div"); cc.className="periode";
+    cc.textContent="Concrètement : 100 000 F placés sur un an sont devenus, selon la date d’entrée, entre "+fmtEntier.format(100000*ext.pire)+" et "+fmtEntier.format(100000*ext.mieux)+" F.";
+    el.appendChild(cc);
+  }
   if(estIndice){
     const nbi=document.createElement("div"); nbi.className="periode";
     nbi.textContent="Indice de référence : il n’est pas directement investissable et les dividendes ne sont pas pris en compte (indice de prix) — simulation théorique.";
@@ -1064,8 +1248,34 @@ function recalculer(){
   const titres={epargne:"Évolution de votre épargne",rente:"Votre rente et votre capital",plan:"Votre plan retraite"};
   $("titre-graphe").textContent=titres[etat.scenario];
   $("sous-graphe").textContent="Montants en francs CFA · rendement "+fmtPct.format(etat.r*100)+" % par an issu de l’historique";
+  const ph=construirePhrase(etat,res);
+  $("phrase-resultat").hidden=!ph;
+  $("phrase-texte").textContent=ph;
   dessinerGraphe();
   majTableau(etat,res);
+}
+
+function construirePhrase(etat,res){
+  if(!res) return "";
+  const f=etat.fonds.nom;
+  if(etat.scenario==="epargne"){
+    const freqTxt={1:"chaque mois",3:"chaque trimestre",12:"chaque année"}[etat.freq];
+    const gain=res.net-res.totalVerse;
+    let debut;
+    if(etat.versement>0&&etat.initial>0) debut="En versant "+F(etat.versement)+" "+freqTxt+" pendant "+etat.annees+" ans, après une mise de départ de "+F(etat.initial)+", vous auriez déposé "+F(res.totalVerse)+" au total.";
+    else if(etat.versement>0) debut="En versant "+F(etat.versement)+" "+freqTxt+" pendant "+etat.annees+" ans, vous auriez déposé "+F(res.totalVerse)+" au total.";
+    else debut="En plaçant "+F(etat.initial)+" pendant "+etat.annees+" ans sans autre versement,";
+    if(gain>=0) return debut+" Au rythme observé de "+f+", cette épargne vaudrait environ "+F(res.net)+" — soit "+F(gain)+" de plus que vos dépôts, produits par les rendements. Sans placement (la courbe ambre), vous auriez simplement "+F(res.totalVerse)+".";
+    return debut+" Au rythme observé de "+f+" sur la période, cette épargne ne vaudrait plus qu’environ "+F(res.net)+" — soit "+F(Math.abs(gain))+" de moins que vos dépôts : ce support a perdu de la valeur sur l’historique observé.";
+  }
+  if(etat.scenario==="rente"){
+    const rr=res.rente;
+    if(rr.aVie) return "Un capital de "+F(etat.capital)+" placé dans "+f+" pourrait vous verser "+F(rr.renteNette)+" chaque mois, à vie : les retraits restent couverts par les rendements, et le capital n’est jamais entamé.";
+    return "Un capital de "+F(etat.capital)+" placé dans "+f+" pourrait vous verser "+F(rr.renteNette)+" chaque mois pendant "+libDureeMois(rr.dureeMois)+". Au total, vous auriez perçu "+F(rr.totalPercu)+" — pour "+F(etat.capital)+" placés au départ.";
+  }
+  const pl=res.plan, rr=pl.rente;
+  const fin=rr.aVie?" à vie, sans jamais épuiser le capital":" jusqu’à vos "+Math.round(pl.ageFin)+" ans";
+  return "En épargnant "+F(etat.mensuel)+" par mois de "+etat.ageA+" à "+etat.ageR+" ans, vous arriveriez à la retraite avec environ "+F(pl.capRetraite)+". Ce capital pourrait ensuite vous verser "+F(rr.renteNette)+" par mois"+fin+".";
 }
 
 function basculerScenario(){
@@ -1240,11 +1450,38 @@ function montrerVue(nom){
 }
 function vueDepuisHash(){
   const h=(location.hash||"#accueil").slice(1);
-  montrerVue(["accueil","guide","simulateur"].includes(h)?h:"accueil");
+  montrerVue(["accueil","comprendre","guide","simulateur"].includes(h)?h:"accueil");
 }
 window.addEventListener("hashchange",vueDepuisHash);
+$("porte-comprendre").addEventListener("click",()=>{montrerVue("comprendre");window.scrollTo(0,0);});
 $("porte-guide").addEventListener("click",()=>montrerVue("guide"));
 $("porte-libre").addEventListener("click",()=>montrerVue("simulateur"));
+$("comprendre-vers-guide").addEventListener("click",()=>montrerVue("guide"));
+$("comprendre-vers-simulateur").addEventListener("click",()=>montrerVue("simulateur"));
+
+/* ————————————————— Exemples à un clic ————————————————— */
+const EXEMPLES=[
+  {fonds:0, scenario:"epargne", regler:function(){ fixerMontant("initial",0); fixerMontant("versement",25000);
+    document.querySelector("input[name=freq][value='1']").checked=true; $("duree").value=10; }},
+  {fonds:1, scenario:"plan", regler:function(){ $("p-age").value=40; $("p-age-retraite").value=60;
+    fixerMontant("p-initial",0); fixerMontant("p-mensuel",50000);
+    document.querySelector("input[name=p-mode][value=avie]").checked=true;
+    $("p-ligne-montant").hidden=true; $("p-ligne-duree").hidden=true; }},
+  {fonds:0, scenario:"rente", regler:function(){ fixerMontant("r-capital",30000000);
+    document.querySelector("input[name=r-mode][value=montant]").checked=true;
+    $("r-ligne-montant").hidden=false; $("r-ligne-duree").hidden=true;
+    fixerMontant("r-rente",250000); }}
+];
+document.querySelectorAll(".exemple").forEach(b=>b.addEventListener("click",()=>{
+  const ex=EXEMPLES[Number(b.dataset.exemple)||0];
+  selFonds.value=String(ex.fonds);
+  const f=FONDS[ex.fonds]; $("entree").value=f.entree; $("sortie").value=f.sortie;
+  document.querySelector("input[name=scenario][value="+ex.scenario+"]").checked=true;
+  ex.regler();
+  montrerVue("simulateur");
+  basculerScenario();
+  window.scrollTo({top:0,behavior:"smooth"});
+}));
 
 /* ————————————————— Rapport PDF ————————————————— */
 function pdfTexte(s){
@@ -1476,7 +1713,7 @@ $("btn-envoyer-email").addEventListener("click",()=>{
 (function(){
   const toutes=FONDS.flatMap(f=>f.labels).sort();
   const derniere=toutes[toutes.length-1];
-  $("etiquette-vl").textContent="Version 2 · données au "+libDate(derniere);
+  $("etiquette-vl").textContent="Version 3 · données au "+libDate(derniere);
   $("mention-source").textContent="Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds ; dernières données intégrées : "+libDate(derniere)+".";
   $("note-accueil").textContent="Fonds couverts : "+FONDS.map(f=>f.nom).join(", ")+" · historiques de VL du "+libDate(FONDS[0].labels[0])+" au "+libDate(derniere)+".";
 })();
