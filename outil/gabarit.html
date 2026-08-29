@@ -469,7 +469,8 @@
     <details><summary>Qu’est-ce qu’un indice boursier ?</summary><p>Un thermomètre du marché&nbsp;: un chiffre calculé à partir des cours d’un panier de titres. Quand l’indice monte, le marché monte en moyenne. Il sert à mesurer et comparer — pas à investir directement.</p></details>
     <details><summary>Et le BRVM Composite, précisément ?</summary><p>L’indice qui suit l’ensemble des actions cotées à la BRVM&nbsp;: c’est le baromètre le plus large du marché régional. Le simulateur utilise son historique comme référence théorique — en gardant en tête qu’il ne compte pas les dividendes et qu’on ne l’achète pas directement.</p></details>
     <details><summary>Pourquoi ne puis-je pas investir «&nbsp;dans l’indice&nbsp;» ?</summary><p>Parce qu’un indice est un calcul, pas un produit&nbsp;: personne ne vend de «&nbsp;parts de BRVM Composite&nbsp;». On peut s’en approcher en achetant les titres qui le composent ou via des fonds investis en actions — la simulation sur l’indice reste donc théorique.</p></details>
-    <details><summary>D’où viennent les rendements affichés ?</summary><p>Des historiques réels&nbsp;: valeurs liquidatives publiées pour les fonds, cotations officielles pour l’indice. Le simulateur en tire un rendement annualisé sur la période indiquée, puis projette à ce rythme constant — une convention pédagogique, pas une prévision.</p></details>
+    <details><summary>D’où viennent les rendements affichés ?</summary><p>Des historiques réels&nbsp;: valeurs liquidatives publiées pour les fonds, cotations officielles pour l’indice. Le simulateur en tire un rendement annualisé sur la période indiquée, puis projette à ce rythme constant — une convention pédagogique, pas une prévision. Pour l’indice BRVM Composite, le taux retenu est la moyenne annualisée des cinq dernières années civiles (2021-2025), plus représentatives du marché actuel que les débuts de l’historique.</p></details>
+    <details><summary>Qu’est-ce qu’un «&nbsp;rendement cible&nbsp;» ?</summary><p>Certains fonds sont trop récents pour avoir un historique de valeurs liquidatives. Pour eux, le simulateur applique le rendement que la société de gestion s’est donné comme objectif pour l’année — signalé «&nbsp;cible&nbsp;» partout sur le site. C’est une ambition de gestion, pas un constat&nbsp;: rien ne garantit qu’elle sera atteinte. Dès que leurs premières VL seront publiées, le simulateur basculera sur le rendement réellement observé.</p></details>
     <details><summary>Les dividendes sont-ils pris en compte ?</summary><p>Dans les fonds, oui&nbsp;: dividendes et intérêts encaissés par le portefeuille se retrouvent dans la valeur liquidative, nets de frais de gestion. Dans l’indice BRVM Composite, non&nbsp;: c’est un indice de prix, qui sous-estime donc ce qu’aurait réellement rapporté le marché dividendes compris.</p></details>
 
     <h3>Le simulateur</h3>
@@ -527,6 +528,7 @@
     <p style="margin:16px 0 2px;font-weight:600;color:var(--ink)">Les notions de la simulation</p>
     <dl class="lexique">
       <dt>Rendement annualisé</dt><dd>Le rythme moyen de progression par an constaté sur une période — la vitesse de croisière calculée depuis l’historique.</dd>
+      <dt>Rendement cible</dt><dd>L’objectif de rendement annuel que la société de gestion annonce pour un fonds — utilisé ici, faute d’historique, pour les fonds récents. Un cap affiché, pas une promesse.</dd>
       <dt>Volatilité</dt><dd>L’ampleur des à-coups autour de cette moyenne. Deux placements au même rendement peuvent vivre des trajets très différents.</dd>
       <dt>Rente</dt><dd>Somme retirée à intervalle régulier d’un capital placé — jusqu’à épuisement, ou «&nbsp;à vie&nbsp;» si les retraits restent couverts par les rendements.</dd>
       <dt>Diversification</dt><dd>Répartir son épargne entre plusieurs supports pour ne pas dépendre d’un seul — le premier réflexe de prudence.</dd>
@@ -806,7 +808,7 @@
 <section class="mentions">
   <h2>Hypothèses et avertissements</h2>
   <p>Cet outil est fourni à titre pédagogique. Il ne constitue ni un conseil en investissement, ni une offre de souscription, ni une promesse de rendement. La proposition du parcours guidé est établie à partir de vos seules réponses et ne constitue pas une recommandation personnalisée.</p>
-  <p>Le rendement appliqué est le rendement annualisé constaté sur l’historique des valeurs liquidatives du fonds sélectionné, projeté à taux constant. Les performances passées ne préjugent pas des performances futures.</p>
+  <p>Le rendement appliqué est le rendement annualisé constaté sur l’historique des valeurs liquidatives du fonds sélectionné — ou, pour les fonds récents qui n’ont pas encore d’historique, le rendement cible annoncé par la société de gestion, qui est un objectif de gestion en rien garanti —, projeté à taux constant. Les performances passées ne préjugent pas des performances futures, et un rendement cible ne préjuge pas du rendement réellement servi. Pour l’indice BRVM Composite, le rendement appliqué est la moyenne annualisée des cinq dernières années civiles (2021-2025).</p>
   <p>Les indices boursiers proposés sont des indices de prix&nbsp;: les dividendes ne sont pas pris en compte, et un indice n’est pas directement investissable — les simulations correspondantes sont théoriques.</p>
   <p>Hypothèses de calcul&nbsp;: versements et retraits en début de mois&nbsp;; droits d’entrée déduits de chaque versement&nbsp;; droits de sortie appliqués à chaque retrait ou à la valeur finale&nbsp;; frais de gestion déjà compris dans les valeurs liquidatives&nbsp;; rente constante, non revalorisée de l’inflation&nbsp;; aucune fiscalité appliquée — les fonds présentés sont exonérés d’impôt pour l’épargnant.</p>
   <p id="mention-source">Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds.</p>
@@ -872,6 +874,8 @@ function grouperMilliers(input){
 
 /* ————————————————— Moteur ————————————————— */
 function rendementAnnualise(fonds){
+  if(fonds.type==="cible") return {r:fonds.tauxCible, annees:null, du:null, au:null, cible:true};
+  if(fonds.rendFige){ const f0=dateISO(fonds.rendFige.du), f1=dateISO(fonds.rendFige.au); return {r:fonds.rendFige.r, annees:(f1-f0)/86400000/365.25, du:fonds.rendFige.du, au:fonds.rendFige.au}; }
   const d0=dateISO(fonds.labels[0]), d1=dateISO(fonds.labels[fonds.labels.length-1]);
   const annees=(d1-d0)/86400000/365.25;
   const r=Math.pow(fonds.vl[fonds.vl.length-1]/fonds.vl[0], 1/annees)-1;
@@ -1065,9 +1069,21 @@ function majFiche(etat){
   const f=etat.fonds, el=$("fiche-fonds");
   el.replaceChildren();
   const rdt=document.createElement("div"); rdt.className="rdt";
-  rdt.textContent="Rendement annualisé observé";
+  const estCible=f.type==="cible";
+  rdt.textContent=estCible?("Rendement cible annoncé pour "+f.cibleAnnee):"Rendement annualisé observé";
   const rdtVal=document.createElement("div"); rdtVal.className="rdt-val";
   rdtVal.textContent=fmtPct.format(etat.r*100)+" % par an";
+  if(estCible){
+    const pol=document.createElement("div"); pol.className="periode";
+    pol.textContent="Orientation de gestion : "+f.politique+".";
+    const nb=document.createElement("div"); nb.className="periode";
+    nb.textContent="Fonds récent : pas encore d’historique de valeurs liquidatives publié. Le taux utilisé est l’objectif que s’est fixé la société de gestion — non garanti. Dès que les VL seront disponibles, la simulation basculera sur le rendement réellement observé. ";
+    const lienC=document.createElement("a"); lienC.href="#aide"; lienC.className="lien-doux";
+    lienC.textContent="Qu’est-ce qu’un rendement cible ?";
+    nb.appendChild(lienC);
+    el.append(rdt,rdtVal,pol,nb);
+    return;
+  }
   const per=document.createElement("div"); per.className="periode";
   const estIndice=f.type==="indice";
   per.textContent=(estIndice?"Indice ":"VL ")+fmtEntier.format(f.vl[0])+" → "+fmtEntier.format(f.vl[f.vl.length-1])+" · "+libDate(f.labels[0])+" – "+libDate(f.labels[f.labels.length-1])+" ("+f.vl.length+(estIndice?" cotations)":" VL)");
@@ -1079,7 +1095,10 @@ function majFiche(etat){
   p.setAttribute("d",ligneSVG(f.vl,150,34));p.setAttribute("fill","none");
   p.setAttribute("stroke","currentColor");p.setAttribute("stroke-width","1.5");
   svg.appendChild(p);
-  el.append(rdt,rdtVal,per,vol,svg);
+  el.append(rdt,rdtVal);
+  if(f.politique){ const pol=document.createElement("div"); pol.className="periode"; pol.textContent="Orientation de gestion : "+f.politique+"."; el.appendChild(pol); }
+  if(f.rendFige){ const fen=document.createElement("div"); fen.className="periode"; fen.textContent="Rendement calculé sur "+f.rendFige.libelle+", du "+libDate(f.rendFige.du)+" au "+libDate(f.rendFige.au)+" ; l’historique complet reste affiché ci-dessous."; el.appendChild(fen); }
+  el.append(per,vol,svg);
   const ext=extremesAnnuels(f);
   if(ext){
     const cc=document.createElement("div"); cc.className="periode";
@@ -1121,7 +1140,7 @@ function majTuiles(etat,res){
       tuile("Total versé",F(res.totalVerse), res.fraisEntree>0?("dont droits d’entrée : "+F(res.fraisEntree)):("sur "+etat.annees+" ans")),
       tuile("Valeur au terme",F(res.net), etat.sortie>0?"nette de droits de sortie":("au bout de "+etat.annees+" ans"),null,true),
       tuile("Gain net",(gain>=0?"+":"−")+F(Math.abs(gain)), "soit "+fmtPct.format(Math.abs(pct)*100)+" % du total versé", gain>=0?"pos":"neg"),
-      tuile("Rendement appliqué",fmtPct.format(etat.r*100)+" %", "VL du "+libDate(etat.du)+" au "+libDate(etat.au))
+      tuile("Rendement appliqué",fmtPct.format(etat.r*100)+" %", etat.du?("VL du "+libDate(etat.du)+" au "+libDate(etat.au)):("objectif "+etat.fonds.cibleAnnee+", non garanti"))
     );
     return;
   }
@@ -1330,7 +1349,7 @@ function montrerInfobulle(t,xSvg,ySvg){
     const r=document.createElement("div");r.className="rangee";
     const k=document.createElement("span");k.className="cle-trait";k.style.borderColor=C[c.cle];k.style.borderTopStyle="dashed";
     const v=document.createElement("span");v.className="valeur";v.textContent=F(c.res.points[t].cap||0);
-    const q=document.createElement("span");q.className="qui";q.textContent=nomCourt(c.f);
+    const q=document.createElement("span");q.className="qui";q.textContent=nomCourt(c.f)+(c.f.type==="cible"?" (cible)":"");
     r.append(k,v,q);bulle.appendChild(r);
   }
   const rect=svg.getBoundingClientRect(), zr=zone.getBoundingClientRect();
@@ -1355,7 +1374,7 @@ function majLegende(etat){
   for(const c of (graphe.comp||[])){
     const cle=document.createElement("span");cle.className="cle";
     const tr=document.createElement("span");tr.className="trait pointille";tr.style.borderColor=C[c.cle];
-    cle.append(tr,document.createTextNode(nomCourt(c.f)));
+    cle.append(tr,document.createTextNode(nomCourt(c.f)+(c.f.type==="cible"?" (cible)":"")));
     lg.appendChild(cle);
   }
 }
@@ -1414,7 +1433,7 @@ function reconstruirePuces(etat){
     const inp=document.createElement("input"); inp.type="checkbox"; inp.checked=pos>=0;
     const cle=document.createElement("span"); cle.className="cle-comp";
     if(pos>=0) cle.style.borderTopColor=C["comp"+(pos+1)];
-    lab.append(inp,cle,document.createTextNode(nomCourt(f)));
+    lab.append(inp,cle,document.createTextNode(nomCourt(f)+(f.type==="cible"?" (cible)":"")));
     inp.addEventListener("change",()=>{
       const p=comparaisonChoix.indexOf(idx);
       if(p>=0) comparaisonChoix.splice(p,1);
@@ -1455,7 +1474,7 @@ function majComparaison(etat,res){
     valeurs.forEach((v,i)=>{ const td=document.createElement("td"); td.textContent=v; if(classes&&classes[i]) td.className=classes[i]; trl.appendChild(td); });
     corps.appendChild(trl);
   };
-  ligne("Rendement annualisé observé",colonnes.map(c=>fmtPct.format(c.etat.r*100)+" %"));
+  ligne("Rendement appliqué",colonnes.map(c=>fmtPct.format(c.etat.r*100)+" % "+(c.f.type==="cible"?"(cible)":"(observé)")));
   ligne("Droits (entrée / sortie)",colonnes.map(c=>fmtPct.format(c.f.entree)+" % / "+fmtPct.format(c.f.sortie)+" %"));
   if(etat.scenario==="epargne"){
     ligne("Valeur au terme",colonnes.map(c=>F(c.res.net)));
@@ -1471,7 +1490,7 @@ function majComparaison(etat,res){
     ligne("Servie",colonnes.map(c=>c.res.plan.rente.aVie?"À vie":("jusqu’à "+Math.round(c.res.plan.ageFin)+" ans")));
   }
   $("note-comparaison").textContent=graphe.comp.length
-    ? "Chaque support est simulé avec vos paramètres et ses propres droits — les courbes en pointillés montrent leur capital sur le graphique."+(graphe.comp.some(c=>c.f.type==="indice")?" L’indice, sans frais, reste une référence théorique (dividendes non compris).":"")
+    ? "Chaque support est simulé avec vos paramètres et ses propres droits — les courbes en pointillés montrent leur capital sur le graphique."+(graphe.comp.some(c=>c.f.type==="indice")?" L’indice, sans frais, reste une référence théorique (dividendes non compris).":"")+(graphe.comp.some(c=>c.f.type==="cible")?" Les fonds récents sont simulés à leur rendement cible annoncé — un objectif, pas un constat.":"")
     : "Choisissez ci-dessus le ou les supports (deux au plus) à comparer avec le vôtre.";
 }
 $("btn-comparer").addEventListener("click",()=>{
@@ -1500,7 +1519,7 @@ function recalculer(){
   majLegende(etat);
   const titres={epargne:"Évolution de votre épargne",rente:"Votre rente et votre capital",plan:"Votre plan retraite"};
   $("titre-graphe").textContent=titres[etat.scenario];
-  $("sous-graphe").textContent="Montants en francs CFA · rendement "+fmtPct.format(etat.r*100)+" % par an issu de l’historique";
+  $("sous-graphe").textContent="Montants en francs CFA · rendement "+fmtPct.format(etat.r*100)+" % par an "+(etat.fonds.type==="cible"?"— cible annoncée pour "+etat.fonds.cibleAnnee+", non garantie":"issu de l’historique");
   const ph=construirePhrase(etat,res);
   $("phrase-resultat").hidden=!ph;
   $("phrase-texte").textContent=ph;
@@ -1511,6 +1530,9 @@ function recalculer(){
 function construirePhrase(etat,res){
   if(!res) return "";
   const f=etat.fonds.nom;
+  const estCible=etat.fonds.type==="cible";
+  const rythme=estCible?("Au rendement cible de "+f+" ("+fmtPct.format(etat.r*100)+" % par an annoncés pour "+etat.fonds.cibleAnnee+", non garantis)"):("Au rythme observé de "+f);
+  const noteCible=estCible?" Fonds récent, sans historique de VL : ce calcul repose sur l’objectif annoncé, pas sur un rendement constaté.":"";
   if(etat.scenario==="epargne"){
     const freqTxt={1:"chaque mois",3:"chaque trimestre",12:"chaque année"}[etat.freq];
     const gain=res.net-res.totalVerse;
@@ -1518,17 +1540,17 @@ function construirePhrase(etat,res){
     if(etat.versement>0&&etat.initial>0) debut="En versant "+F(etat.versement)+" "+freqTxt+" pendant "+etat.annees+" ans, après une mise de départ de "+F(etat.initial)+", vous auriez déposé "+F(res.totalVerse)+" au total.";
     else if(etat.versement>0) debut="En versant "+F(etat.versement)+" "+freqTxt+" pendant "+etat.annees+" ans, vous auriez déposé "+F(res.totalVerse)+" au total.";
     else debut="En plaçant "+F(etat.initial)+" pendant "+etat.annees+" ans sans autre versement,";
-    if(gain>=0) return debut+" Au rythme observé de "+f+", cette épargne vaudrait environ "+F(res.net)+" — soit "+F(gain)+" de plus que vos dépôts, produits par les rendements. Sans placement (la courbe ambre), vous auriez simplement "+F(res.totalVerse)+".";
-    return debut+" Au rythme observé de "+f+" sur la période, cette épargne ne vaudrait plus qu’environ "+F(res.net)+" — soit "+F(Math.abs(gain))+" de moins que vos dépôts : ce support a perdu de la valeur sur l’historique observé.";
+    if(gain>=0) return debut+" "+rythme+", cette épargne vaudrait environ "+F(res.net)+" — soit "+F(gain)+" de plus que vos dépôts, produits par les rendements. Sans placement (la courbe ambre), vous auriez simplement "+F(res.totalVerse)+"."+noteCible;
+    return debut+" "+rythme+" sur la période, cette épargne ne vaudrait plus qu’environ "+F(res.net)+" — soit "+F(Math.abs(gain))+" de moins que vos dépôts : ce support a perdu de la valeur sur l’historique observé."+noteCible;
   }
   if(etat.scenario==="rente"){
     const rr=res.rente;
-    if(rr.aVie) return "Un capital de "+F(etat.capital)+" placé dans "+f+" pourrait vous verser "+F(rr.renteNette)+" chaque mois, à vie : les retraits restent couverts par les rendements, et le capital n’est jamais entamé.";
-    return "Un capital de "+F(etat.capital)+" placé dans "+f+" pourrait vous verser "+F(rr.renteNette)+" chaque mois pendant "+libDureeMois(rr.dureeMois)+". Au total, vous auriez perçu "+F(rr.totalPercu)+" — pour "+F(etat.capital)+" placés au départ.";
+    if(rr.aVie) return "Un capital de "+F(etat.capital)+" placé dans "+f+" pourrait vous verser "+F(rr.renteNette)+" chaque mois, à vie : les retraits restent couverts par les rendements, et le capital n’est jamais entamé."+noteCible;
+    return "Un capital de "+F(etat.capital)+" placé dans "+f+" pourrait vous verser "+F(rr.renteNette)+" chaque mois pendant "+libDureeMois(rr.dureeMois)+". Au total, vous auriez perçu "+F(rr.totalPercu)+" — pour "+F(etat.capital)+" placés au départ."+noteCible;
   }
   const pl=res.plan, rr=pl.rente;
   const fin=rr.aVie?" à vie, sans jamais épuiser le capital":" jusqu’à vos "+Math.round(pl.ageFin)+" ans";
-  return "En épargnant "+F(etat.mensuel)+" par mois de "+etat.ageA+" à "+etat.ageR+" ans, vous arriveriez à la retraite avec environ "+F(pl.capRetraite)+". Ce capital pourrait ensuite vous verser "+F(rr.renteNette)+" par mois"+fin+".";
+  return "En épargnant "+F(etat.mensuel)+" par mois de "+etat.ageA+" à "+etat.ageR+" ans, vous arriveriez à la retraite avec environ "+F(pl.capRetraite)+". Ce capital pourrait ensuite vous verser "+F(rr.renteNette)+" par mois"+fin+"."+noteCible;
 }
 
 function basculerScenario(){
@@ -1562,7 +1584,7 @@ new ResizeObserver(()=>{ if(graphe.etat&&document.querySelector("#vue-simulateur
 if(window.matchMedia){ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>recalculer()); }
 
 /* ————————————————— Parcours guidé ————————————————— */
-function fondsInvestissables(){ const l=FONDS.filter(f=>f.type!=="indice"); return l.length?l:FONDS; }
+function fondsInvestissables(){ const l=FONDS.filter(f=>f.type==="fonds"); if(l.length) return l; const l2=FONDS.filter(f=>f.type!=="indice"); return l2.length?l2:FONDS; }
 function fondsCalme(){ return [...fondsInvestissables()].sort((a,b)=>a.volAnnuelle-b.volAnnuelle)[0]; }
 function fondsDynamique(){ return [...fondsInvestissables()].sort((a,b)=>b.volAnnuelle-a.volAnnuelle)[0]; }
 
@@ -1661,7 +1683,14 @@ function afficherProposition(){
   autre.textContent="Comparer avec l’autre fonds";
   autre.addEventListener("click",()=>{ appliquerProposition({...g, fonds:(g.fonds===fondsCalme()?fondsDynamique():fondsCalme())}); });
   actions.append(btn,autre);
-  zone.append(h,sc,ul,av,actions);
+  zone.append(h,sc,ul,av);
+  const fondsCibles=FONDS.filter(x=>x.type==="cible");
+  if(fondsCibles.length){
+    const nc=document.createElement("p"); nc.className="avert";
+    nc.textContent="Les fonds récents ("+fondsCibles.map(nomCourt).join(", ")+") ne sont pas proposés par ce parcours : sans historique de VL, leur régularité ne peut pas encore être comparée. Vous pouvez les essayer librement dans le simulateur, à leur rendement cible annoncé.";
+    zone.appendChild(nc);
+  }
+  zone.append(actions);
 }
 $("form-guide").addEventListener("submit",ev=>{ev.preventDefault();afficherProposition();});
 
@@ -1777,7 +1806,7 @@ function construirePaires(etat){
   paires.push(["Âges",etat.ageA+" ans → retraite à "+etat.ageR+" ans"],["Mise de départ",F(etat.initial)],["Versement mensuel",F(etat.mensuel)]);
   paires.push(etat.modeRente==="montant"?["Rente souhaitée",F(etat.renteNette)+" / mois"]:etat.modeRente==="duree"?["Durée de rente",etat.dureeRente+" ans"]:["Rente","à vie — capital préservé"]);
   }
-  paires.push(["Rendement appliqué",fmtPct.format(etat.r*100)+" % par an (VL du "+libDate(etat.du)+" au "+libDate(etat.au)+")"]);
+  paires.push(["Rendement appliqué",fmtPct.format(etat.r*100)+" % par an ("+(etat.du?("VL du "+libDate(etat.du)+" au "+libDate(etat.au)):("cible annoncée pour "+etat.fonds.cibleAnnee+", non garantie"))+")"]);
   paires.push(["Droits",fmtPct.format(etat.entree)+" % entrée · "+fmtPct.format(etat.sortie)+" % sortie"]);
   return paires;
 }
@@ -1876,7 +1905,7 @@ function genererRapport(){
     doc.setDrawColor(FILET[0],FILET[1],FILET[2]); doc.setLineWidth(0.25); doc.line(MG,y,L-MG,y); y+=4.5;
     doc.setFont("helvetica","normal"); doc.setFontSize(7.2); doc.setTextColor(GRIS[0],GRIS[1],GRIS[2]);
     const avert="Document pédagogique édité par le Simulateur OPCVM. Il ne constitue ni un conseil en investissement, ni une offre de souscription, ni une promesse de rendement. "+
-      "Le rendement appliqué est le rendement annualisé constaté sur l'historique des valeurs liquidatives du fonds, projeté à taux constant ; les performances passées ne préjugent pas des performances futures. "+
+      "Le rendement appliqué est le rendement annualisé constaté sur l'historique des valeurs liquidatives du fonds — ou, pour un fonds récent sans historique, son rendement cible annoncé, non garanti —, projeté à taux constant ; les performances passées ne préjugent pas des performances futures. "+
       "Versements et retraits en début de mois ; droits d'entrée déduits de chaque versement ; droits de sortie appliqués à chaque retrait ou à la valeur finale ; frais de gestion déjà compris dans les VL ; rente non revalorisée de l'inflation ; fiscalité non prise en compte.";
     doc.text(doc.splitTextToSize(pdfTexte(avert),LU),MG,y);
     /* pied de page */
@@ -1973,8 +2002,10 @@ $("btn-envoyer-email").addEventListener("click",()=>{
   const toutes=FONDS.flatMap(f=>f.labels).sort();
   const derniere=toutes[toutes.length-1];
   $("etiquette-vl").textContent="Version 3 · données au "+libDate(derniere);
-  $("mention-source").textContent="Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds ; dernières données intégrées : "+libDate(derniere)+".";
-  $("note-accueil").textContent="Fonds couverts : "+FONDS.map(f=>f.nom).join(", ")+" · historiques de VL du "+libDate(FONDS[0].labels[0])+" au "+libDate(derniere)+".";
+  const nbCibles=FONDS.filter(f=>f.type==="cible").length;
+  $("mention-source").textContent="Les historiques de valeurs liquidatives proviennent des données communiquées pour chaque fonds ; dernières données intégrées : "+libDate(derniere)+"."+(nbCibles?" Les fonds récents sans historique sont simulés à leur rendement cible annoncé, dans l’attente de leurs premières VL.":"");
+  const observes=FONDS.filter(f=>f.type!=="cible"), cibles=FONDS.filter(f=>f.type==="cible");
+  $("note-accueil").textContent="Supports couverts : "+observes.map(f=>f.nom).join(", ")+" · historiques de VL du "+libDate(observes[0].labels[0])+" au "+libDate(derniere)+"."+(cibles.length?" Fonds récents suivis sur leur rendement cible annoncé : "+cibles.map(f=>f.nom).join(", ")+".":"");
 })();
 majBlocsGuide();
 basculerScenario();

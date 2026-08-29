@@ -25,13 +25,34 @@ SORTIE = RACINE / "index.html"
 
 # ————— Réglages par fonds (facultatifs) —————
 # Clé : fragment (insensible à la casse) du nom de fichier.
-# ordre : position dans la liste déroulante ; entree/sortie : droits en %.
+# ordre : position dans la liste déroulante ; entree/sortie : droits en % ;
+# politique : orientation de gestion affichée dans la fiche.
+# rendement_du / rendement_au : fenêtre de calcul du rendement appliqué
+# (borne = dernière cotation à la date ou avant) — l'historique complet reste
+# affiché ; rendement_libelle : explication de la fenêtre dans la fiche.
 REGLAGES = {
-    "confort": {"ordre": 1, "entree": 0.75, "sortie": 0.0},
-    "capital": {"ordre": 2, "entree": 1.5, "sortie": 1.5},
-    "brvm": {"ordre": 3, "entree": 0.0, "sortie": 0.0,
-             "type": "indice", "nom": "BRVM Composite (indice)"},
+    "confort": {"ordre": 1, "entree": 0.75, "sortie": 0.0, "politique": "obligataire"},
+    "capital": {"ordre": 2, "entree": 1.5, "sortie": 1.5, "politique": "diversifié"},
+    "brvm": {"ordre": 9, "entree": 0.0, "sortie": 0.0,
+             "type": "indice", "nom": "BRVM Composite (indice)",
+             "rendement_du": "2020-12-31", "rendement_au": "2025-12-31",
+             "rendement_libelle": "les cinq dernières années civiles (2021-2025)"},
 }
+
+# ————— Fonds récents sans historique de VL : rendement cible annoncé —————
+# Tant qu'un fonds n'a pas d'historique, il est simulé au taux que la société
+# de gestion s'est fixé comme objectif (étiqueté « cible, non garanti » partout
+# sur le site, et exclu du parcours guidé). Dès que ses VL existent : déposer
+# le CSV dans donnees-vl/ et retirer l'entrée ci-dessous — le fonds bascule
+# alors sur le rendement observé. taux en % par an ; entree/sortie en %.
+FONDS_CIBLES = [
+    {"nom": "FCP AGA Elite", "politique": "actions",
+     "taux": 15.0, "annee": 2026, "ordre": 3, "entree": 2.0, "sortie": 2.0},
+    {"nom": "FCP AGA Obligations", "politique": "obligataire (« investment grade »)",
+     "taux": 6.0, "annee": 2026, "ordre": 4, "entree": 1.0, "sortie": 1.0},
+    {"nom": "FCP AGA TrésoActiv", "politique": "monétaire",
+     "taux": 5.5, "annee": 2026, "ordre": 5, "entree": 0.5, "sortie": 0.5},
+]
 
 # ————— Envoi du résumé par e-mail (EmailJS) —————
 # Laisser vide tant que le compte n'est pas configuré : le bouton bascule
@@ -155,19 +176,62 @@ def main():
         variance = sum((x - moyenne) ** 2 for x in rendements) / len(rendements)
         vol_annuelle = (variance ** 0.5) * math.sqrt(252)
         pire_var = max(abs(x) for x in rendements)
+        donnees = {
+            "id": chemin.stem,
+            "nom": reglage.get("nom", nom_du_fonds(chemin)),
+            "type": reglage.get("type", "fonds"),
+            "entree": reglage.get("entree", 0.0),
+            "sortie": reglage.get("sortie", 0.0),
+            "volAnnuelle": round(vol_annuelle, 4),
+            "pireVarJour": round(pire_var, 4),
+            "labels": [d.isoformat() for d, _ in couples],
+            "vl": [v for _, v in couples],
+        }
+        if "politique" in reglage:
+            donnees["politique"] = reglage["politique"]
+        if reglage.get("rendement_du") and reglage.get("rendement_au"):
+            b0, b1 = parser_date(reglage["rendement_du"]), parser_date(reglage["rendement_au"])
+            i0 = max((i for i, (d, _) in enumerate(couples) if d <= b0), default=None)
+            i1 = max((i for i, (d, _) in enumerate(couples) if d <= b1), default=None)
+            if i0 is None or i1 is None or i1 <= i0:
+                raise SystemExit(f"{chemin.name} : fenêtre de rendement invalide "
+                                 f"({reglage['rendement_du']} → {reglage['rendement_au']}).")
+            annees_f = (couples[i1][0] - couples[i0][0]).days / 365.25
+            donnees["rendFige"] = {
+                "r": round((couples[i1][1] / couples[i0][1]) ** (1 / annees_f) - 1, 6),
+                "du": couples[i0][0].isoformat(),
+                "au": couples[i1][0].isoformat(),
+                "libelle": reglage.get("rendement_libelle", "la période retenue"),
+            }
         fonds.append({
             "fichier": chemin.name,
             "ordre": reglage.get("ordre", 99),
+            "donnees": donnees,
+        })
+
+    noms_observes = {f["donnees"]["nom"].casefold() for f in fonds}
+    for c in FONDS_CIBLES:
+        if c["nom"].casefold() in noms_observes:
+            print(f"  (i) {c['nom']} : un historique de VL existe désormais — "
+                  "entrée FONDS_CIBLES ignorée, pensez à la retirer.")
+            continue
+        ident = unicodedata.normalize("NFKD", c["nom"]).encode("ascii", "ignore").decode().lower()
+        fonds.append({
+            "fichier": None,
+            "ordre": c.get("ordre", 50),
             "donnees": {
-                "id": chemin.stem,
-                "nom": reglage.get("nom", nom_du_fonds(chemin)),
-                "type": reglage.get("type", "fonds"),
-                "entree": reglage.get("entree", 0.0),
-                "sortie": reglage.get("sortie", 0.0),
-                "volAnnuelle": round(vol_annuelle, 4),
-                "pireVarJour": round(pire_var, 4),
-                "labels": [d.isoformat() for d, _ in couples],
-                "vl": [v for _, v in couples],
+                "id": "cible-" + re.sub(r"[^a-z0-9]+", "-", ident).strip("-"),
+                "nom": c["nom"],
+                "type": "cible",
+                "politique": c["politique"],
+                "tauxCible": round(c["taux"] / 100.0, 6),
+                "cibleAnnee": c["annee"],
+                "entree": c.get("entree", 0.0),
+                "sortie": c.get("sortie", 0.0),
+                "volAnnuelle": None,
+                "pireVarJour": None,
+                "labels": [],
+                "vl": [],
             },
         })
 
@@ -186,6 +250,13 @@ def main():
 
     print(f"{SORTIE.name} engendré — {len(liste)} fonds :")
     for f in liste:
+        if f["type"] == "cible":
+            print(
+                f"  · {f['nom']} : rendement cible {f['tauxCible'] * 100:+.2f} % "
+                f"(annoncé pour {f['cibleAnnee']}), sans historique de VL — "
+                f"droits {f['entree']} % / {f['sortie']} %"
+            )
+            continue
         j0, j1 = date.fromisoformat(f["labels"][0]), date.fromisoformat(f["labels"][-1])
         annees = (j1 - j0).days / 365.25
         r = (f["vl"][-1] / f["vl"][0]) ** (1 / annees) - 1
@@ -194,6 +265,13 @@ def main():
             f"({(j1 - j0).days} j), rendement annualisé {r * 100:+.2f} %, "
             f"volatilité {f['volAnnuelle'] * 100:.1f} %, pire jour ±{f['pireVarJour'] * 100:.2f} %"
         )
+        if "rendFige" in f:
+            rf = f["rendFige"]
+            print(
+                f"      rendement appliqué : {rf['r'] * 100:+.2f} % — fenêtre "
+                f"{rf['du']} → {rf['au']} ({rf['libelle']}) ; "
+                f"historique complet {r * 100:+.2f} % pour mémoire"
+            )
 
 
 if __name__ == "__main__":
